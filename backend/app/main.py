@@ -95,3 +95,13 @@ def root():
 @app.get("/health")
 def health_check():
     return {"status": "healthy", "app": APP_NAME}
+
+
+@app.get("/setup-seed")
+def setup_seed():
+    from seeds.admin_seed import create_admin
+    try:
+        create_admin()
+        return {"status": "success", "message": "Admin user seeded successfully"}
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
