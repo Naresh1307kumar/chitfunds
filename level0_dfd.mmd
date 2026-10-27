@@ -1,0 +1,29 @@
+flowchart TD
+    classDef default fill:#ffffff,stroke:#000000,stroke-width:1.5px,color:#000000;
+    linkStyle default stroke:#000000,stroke-width:1.5px;
+
+    User["USER / SUBSCRIBER<br/>(Chit Member)"]
+    Admin["ADMIN / CHIT FOREMAN<br/>(Chit Manager)"]
+    
+    Sys(("0.0<br/>SECURE CHIT<br/>MANAGEMENT SYSTEM"))
+
+    DB[("POSTGRESQL DATABASE<br/>(Central Relational Store)")]
+    Payment["PAYMENT GATEWAY<br/>(Online / UPI)"]
+    EmailSMS["FAST2SMS and SMTP GATEWAY<br/>(Alert Services)"]
+
+    %% User & Admin Flows
+    User -->|"Chit Application, Bids, Receipts"| Sys
+    Sys -->|"Dynamic Dues, Dividend Statements, Receipts"| User
+
+    Admin -->|"Scheme Specs, Member Approvals, Verifications"| Sys
+    Sys -->|"Pending Requests, Auction Summary, Reports"| Admin
+
+    %% Database Flows
+    Sys -->|"Save / Update Records"| DB
+    DB -->|"Fetch Stored Data and Queries"| Sys
+
+    %% External Services Flows
+    Sys -->|"Payment Authorization Request"| Payment
+    Payment -->|"Payment Confirmation Token"| Sys
+
+    Sys -->|"OTP, Due Reminders and Winner Alerts"| EmailSMS

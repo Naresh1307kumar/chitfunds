@@ -53,22 +53,22 @@ const GuarantorForm = () => {
   if (loading) return <div className="p-10 text-center">Loading...</div>;
 
   return (
-    <div className="max-w-3xl mx-auto px-6 py-10">
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8">
-        <div className="flex items-center gap-4 mb-8 pb-6 border-b border-gray-100">
-          <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center">
-            <button 
+    <div className="max-w-3xl mx-auto px-4 sm:px-6 py-6 sm:py-10">
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-5 sm:p-8">
+        <div className="flex items-center gap-3 sm:gap-4 mb-6 sm:mb-8 pb-6 border-b border-gray-100">
+          <button 
             onClick={() => navigate('/member/dashboard')}
-            className="w-10 h-10 rounded-full border border-slate-200 hover:border-slate-350 hover:bg-slate-100 text-slate-500 hover:text-slate-800 flex items-center justify-center transition-colors flex-shrink-0 bg-white mr-2"
+            className="w-9 h-9 sm:w-10 sm:h-10 rounded-full border border-slate-200 hover:border-slate-350 hover:bg-slate-100 text-slate-500 hover:text-slate-800 flex items-center justify-center transition-colors flex-shrink-0 bg-white shadow-sm"
             title="Go Back"
           >
             <ArrowLeft className="w-4 h-4" />
           </button>
-          <UserPlus className="w-6 h-6 text-blue-600" />
+          <div className="w-10 h-10 sm:w-12 sm:h-12 bg-blue-50 rounded-xl flex items-center justify-center flex-shrink-0">
+            <UserPlus className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600" />
           </div>
           <div>
-            <h2 className="text-2xl font-bold text-gray-900">Guarantor Details</h2>
-            <p className="text-gray-500 text-sm">Add a guarantor for your chit plans</p>
+            <h2 className="text-xl sm:text-2xl font-bold text-gray-900">Guarantor Details</h2>
+            <p className="text-gray-500 text-xs sm:text-sm">Add a guarantor for your chit plans</p>
           </div>
         </div>
 

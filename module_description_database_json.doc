@@ -1,0 +1,254 @@
+<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">
+<head>
+    <meta charset="utf-8">
+    <title>Database Architecture JSON Format</title>
+    <style>
+        body { font-family: 'Times New Roman', serif; font-size: 12pt; color: black; line-height: 1.5; }
+        h2 { font-size: 16pt; font-weight: bold; margin-bottom: 20px; text-transform: uppercase; }
+        h3 { font-size: 14pt; font-weight: bold; margin-top: 25px; margin-bottom: 5px; color: black; }
+        p { margin-top: 0; margin-bottom: 10px; }
+        pre { font-family: 'Times New Roman', serif; font-size: 12pt; white-space: pre-wrap; margin-top: 0; margin-bottom: 15px; margin-left: 0; }
+    </style>
+</head>
+<body>
+
+    <h2>4.3 DATABASE DESIGN</h2>
+    <p><strong>Database Name:</strong> chitfund_db <br>
+    <strong>Purpose:</strong> Stores relational entities for users, chit plans, KYC, draws, installments, payments, and system logs. <br>
+    <strong>Database Engine:</strong> MySQL 8.0 (InnoDB, UTF-8mb4)</p>
+
+    <h3>Table 1: users</h3>
+    <pre><code>json
+{
+  "id": 1,
+  "username": "naresh123",
+  "name": "Naresh Kumar",
+  "email": "naresh@chitfund.com",
+  "phone": "9876543210",
+  "password_hash": "$2a$10$e8wF5Zq7Kj1pNmYxRu3bCeVp4Q.LmDtbC9TzA4nFd8Icmi2",
+  "role": "admin",
+  "status": "active",
+  "aadhar_number": "123456789012",
+  "pan_number": "ABCDE1234F",
+  "date_of_birth": "1990-05-15",
+  "occupation": "Business",
+  "kyc_status": "verified",
+  "failed_login_attempts": 0,
+  "last_login": "2026-01-10T09:00:00",
+  "is_deleted": false,
+  "created_at": "2026-01-01T10:00:00",
+  "updated_at": "2026-01-05T12:00:00"
+}</code></pre>
+
+    <h3>Table 2: kyc_documents</h3>
+    <pre><code>json
+{
+  "id": 101,
+  "user_id": 1,
+  "document_type": "aadhar_front",
+  "file_path": "/uploads/kyc/aadhar_front_1.jpg",
+  "status": "verified",
+  "rejection_reason": null,
+  "verified_by": 2,
+  "verified_at": "2026-01-05T10:30:00",
+  "created_at": "2026-01-02T15:00:00"
+}</code></pre>
+
+    <h3>Table 3: chit_plans</h3>
+    <pre><code>json
+{
+  "id": 201,
+  "plan_name": "Gold Plan 2026",
+  "plan_type": "gold",
+  "chit_type": "lucky_draw",
+  "monthly_amount": 5000.0,
+  "total_members": 20,
+  "current_members": 15,
+  "duration_months": 20,
+  "total_value": 100000.0,
+  "commission_rate": 5.0,
+  "net_prize_amount": 95000.0,
+  "start_date": "2026-02-01",
+  "end_date": "2027-10-01",
+  "status": "active",
+  "created_by": 1,
+  "created_at": "2026-01-10T11:00:00"
+}</code></pre>
+
+    <h3>Table 4: plan_members</h3>
+    <pre><code>json
+{
+  "id": 301,
+  "user_id": 5,
+  "plan_id": 201,
+  "ticket_number": "TCK-1024-1",
+  "joined_date": "2026-01-15",
+  "has_won": false,
+  "is_active": true,
+  "reason": "personal",
+  "priority_score": 5,
+  "created_at": "2026-01-15T09:20:00"
+}</code></pre>
+
+    <h3>Table 5: monthly_draws</h3>
+    <pre><code>json
+{
+  "id": 401,
+  "plan_id": 201,
+  "month_number": 1,
+  "draw_date": "2026-02-15",
+  "chit_value": 100000.0,
+  "winning_bid_amount": 25000.0,
+  "discount": 25000.0,
+  "company_commission": 1250.0,
+  "net_discount": 23750.0,
+  "dividend_per_member": 1187.5,
+  "net_payable": 3812.5,
+  "prize_amount": 75000.0,
+  "winning_ticket_id": 301,
+  "winner_id": 5,
+  "status": "completed",
+  "conducted_by": 1,
+  "created_at": "2026-02-15T14:00:00"
+}</code></pre>
+
+    <h3>Table 6: installments</h3>
+    <pre><code>json
+{
+  "id": 501,
+  "plan_member_id": 301,
+  "plan_id": 201,
+  "month_number": 1,
+  "due_date": "2026-02-20",
+  "base_amount": 3812.5,
+  "penalty_amount": 0.0,
+  "total_amount": 3812.5,
+  "status": "paid",
+  "paid_date": "2026-02-18",
+  "payment_method": "UPI",
+  "transaction_id": "UPI1234567890",
+  "receipt_number": "REC-2026-0001",
+  "receipt_path": "/receipts/REC-2026-0001.pdf",
+  "verified_by": 1,
+  "verified_at": "2026-02-19T10:00:00",
+  "created_at": "2026-02-15T15:00:00"
+}</code></pre>
+
+    <h3>Table 7: payments</h3>
+    <pre><code>json
+{
+  "id": 601,
+  "installment_id": 501,
+  "user_id": 5,
+  "amount": 3812.5,
+  "payment_method": "UPI",
+  "transaction_id": "UPI1234567890",
+  "status": "success",
+  "notes": "First month installment paid",
+  "created_at": "2026-02-18T09:30:00"
+}</code></pre>
+
+    <h3>Table 8: promissory_notes</h3>
+    <pre><code>json
+{
+  "id": 701,
+  "pronote_id": "PRN-2026-0001",
+  "member_id": 5,
+  "chit_id": 201,
+  "loan_amount": 75000.0,
+  "issue_date": "2026-02-16",
+  "due_date": "2027-10-01",
+  "interest_rate": 0.0,
+  "repayment_amount": 75000.0,
+  "purpose": "Business expansion",
+  "status": "active",
+  "signature": "Base64 encoded Canvas digital signature string",
+  "created_at": "2026-02-16T10:00:00"
+}</code></pre>
+
+    <h3>Table 9: guarantors</h3>
+    <pre><code>json
+{
+  "id": 801,
+  "member_id": 5,
+  "name": "Ramesh Kumar",
+  "phone": "9988776655",
+  "address": "78, South Street, Chennai",
+  "relationship_to_member": "Friend",
+  "aadhar_number": "987654321098",
+  "document_path": "/uploads/guarantors/g_aadhar_1.jpg",
+  "created_at": "2026-02-16T10:15:00"
+}</code></pre>
+
+    <h3>Table 10: notifications</h3>
+    <pre><code>json
+{
+  "id": 901,
+  "user_id": 5,
+  "title": "Auction Winner",
+  "message": "Congratulations! You have won the auction for Gold Plan 2026.",
+  "notification_type": "success",
+  "is_read": false,
+  "created_at": "2026-02-15T14:30:00"
+}</code></pre>
+
+    <h3>Table 11: certificates</h3>
+    <pre><code>json
+{
+  "id": 1001,
+  "user_id": 5,
+  "plan_id": 201,
+  "certificate_number": "CERT-2026-999",
+  "file_path": "/certificates/CERT-2026-999.pdf",
+  "issued_by": 1,
+  "issued_at": "2027-10-05T11:00:00"
+}</code></pre>
+
+    <h3>Table 12: reports</h3>
+    <pre><code>json
+{
+  "id": 1101,
+  "report_type": "revenue",
+  "report_format": "pdf",
+  "file_path": "/reports/revenue_feb_2026.pdf",
+  "generated_by": 1,
+  "generated_at": "2026-02-28T18:00:00"
+}</code></pre>
+
+    <h3>Table 13: audit_logs</h3>
+    <pre><code>json
+{
+  "id": 1201,
+  "user_id": 1,
+  "action": "PAYMENT_VERIFIED",
+  "entity_type": "installment",
+  "entity_id": 501,
+  "details": "Verified payment for REC-2026-0001",
+  "ip_address": "192.168.1.100",
+  "created_at": "2026-02-19T10:00:05"
+}</code></pre>
+
+    <h3>Table 14: system_settings</h3>
+    <pre><code>json
+{
+  "id": 1301,
+  "key": "commission_rate",
+  "value": "5.0",
+  "description": "Default foreman commission percentage",
+  "updated_at": "2026-01-01T09:00:00",
+  "created_at": "2026-01-01T09:00:00"
+}</code></pre>
+
+    <h3>Table 15: password_resets</h3>
+    <pre><code>json
+{
+  "id": 1401,
+  "user_id": 5,
+  "reset_token": "a1b2c3d4e5f6g7h8i9j0",
+  "expires_at": "2026-03-01T10:00:00",
+  "is_used": false,
+  "created_at": "2026-03-01T09:00:00"
+}</code></pre>
+
+</body>
+</html>

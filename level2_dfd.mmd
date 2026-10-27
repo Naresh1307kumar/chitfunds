@@ -1,0 +1,36 @@
+flowchart TD
+    classDef default fill:#ffffff,stroke:#000000,stroke-width:1.5px,color:#000000;
+    linkStyle default stroke:#000000,stroke-width:1.5px;
+
+    Subscriber["USER / SUBSCRIBER"]
+    Admin["ADMIN / CHIT FOREMAN"]
+    D2[("D2: CHIT SCHEMES STORE")]
+    D3[("D3: BIDS STORE")]
+    D4[("D4: PAYMENTS STORE")]
+
+    P3_1(("3.1<br/>Validate and Entry<br/>Auction Bid"))
+    P3_2(("3.2<br/>Compute Foreman Fee<br/>and Dividend Pool"))
+    P3_3(("3.3<br/>Calculate Member Share<br/>and Net Payable"))
+    
+    P4_1(("4.1<br/>Submit Payment<br/>Ref / Receipt"))
+    P4_2(("4.2<br/>Admin Verification and<br/>Ledger Status Update"))
+
+    InBid[/"Discount Bid Amount"/]
+    OutDividend[/"Member Dividend and Net Due"/]
+    InReceipt[/"Bank / UPI Txn Ref"/]
+
+    Subscriber --> InBid
+    InBid --> P3_1
+    D2 -->|"Max Cap Check"| P3_1
+    P3_1 -->|"Store Valid Bid"| D3
+    P3_1 --> P3_2
+
+    P3_2 -->|"Net Dividend = Discount - 5% Fee"| P3_3
+    P3_3 --> OutDividend
+    OutDividend -->|"Save Monthly Payable"| D4
+
+    Subscriber --> InReceipt
+    InReceipt --> P4_1
+    P4_1 -->|"Set Status: SUBMITTED"| D4
+    Admin -->|"Inspect Reference and Confirm"| P4_2
+    P4_2 -->|"Set Status: PAID"| D4

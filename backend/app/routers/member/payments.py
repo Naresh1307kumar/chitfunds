@@ -70,13 +70,158 @@ def get_all_payments_by_member(
     payments = db.query(Payment).filter(Payment.user_id == current_user.id).order_by(Payment.created_at.desc()).all()
     return payments
 
-@router.get("/history", response_model=List[PaymentResponse])
+@router.get("/history")
 def get_payment_history(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
+    """Get all past paid installment receipts for the current member."""
+    from app.models.plan_member import PlanMember
+    from app.models.chit_plan import ChitPlan
+    
     payments = db.query(Payment).filter(Payment.user_id == current_user.id).order_by(Payment.created_at.desc()).all()
-    return payments
+    
+    results = []
+    for p in payments:
+        inst = db.query(Installment).filter(Installment.id == p.installment_id).first()
+        plan_name = "Chit Scheme"
+        month_num = getattr(inst, 'month_number', 1)
+        receipt_num = getattr(inst, 'receipt_number', f"REC-2026-{p.id:04d}")
+        ticket_num = "PM-17"
+        reason = "VERIFIED"
+
+        if inst:
+            plan = db.query(ChitPlan).filter(ChitPlan.id == inst.plan_id).first()
+            if plan:
+                plan_name = plan.plan_name
+            pm = db.query(PlanMember).filter(PlanMember.id == inst.plan_member_id).first()
+            if pm:
+                ticket_num = pm.ticket_number or "PM-17"
+                reason = getattr(pm, 'reason', 'personal').upper()
+
+        results.append({
+            "id": p.id,
+            "installment_id": p.installment_id,
+            "user_id": p.user_id,
+            "amount": p.amount,
+            "payment_method": p.payment_method,
+            "transaction_id": p.transaction_id,
+            "status": p.status.value if hasattr(p.status, 'value') else str(p.status),
+            "notes": p.notes,
+            "created_at": str(p.created_at),
+            "plan_name": plan_name,
+            "month_number": month_num,
+            "receipt_number": receipt_num,
+            "ticket_number": ticket_num,
+            "emergency_reason": reason
+        })
+
+    return results
+
+
+@router.post("/razorpay/create-order")
+def create_razorpay_order(
+    payload: dict,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Generate a Razorpay Order ID for test mode checkout."""
+    installment_id = payload.get("installment_id")
+    if not installment_id:
+        raise HTTPException(status_code=400, detail="installment_id is required")
+
+    installment = db.query(Installment).filter(Installment.id == installment_id).first()
+    if not installment:
+        raise HTTPException(status_code=404, detail="Installment not found")
+
+    import uuid
+    order_id = f"order_rzp_{uuid.uuid4().hex[:12]}"
+
+    return {
+        "order_id": order_id,
+        "key_id": "rzp_test_securechit2026",
+        "amount": installment.total_amount,
+        "currency": "INR",
+        "installment_id": installment.id,
+        "user_name": current_user.name,
+        "user_email": current_user.email,
+        "user_phone": current_user.phone
+    }
+
+
+@router.post("/razorpay/verify")
+def verify_razorpay_payment(
+    payload: dict,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Submit member payment request for Admin approval & verification before receipt generation."""
+    from datetime import date, datetime
+    from app.models.plan_member import PlanMember
+    from app.models.chit_plan import ChitPlan
+
+    installment_id = payload.get("installment_id")
+    payment_id = payload.get("razorpay_payment_id") or f"pay_upi_{datetime.now().strftime('%Y%m%d%H%M%S')}"
+    reason = payload.get("reason", "personal")
+
+    installment = db.query(Installment).filter(Installment.id == installment_id).first()
+    if not installment:
+        raise HTTPException(status_code=404, detail="Installment not found")
+
+    plan_member = db.query(PlanMember).filter(PlanMember.id == installment.plan_member_id).first()
+    if plan_member:
+        plan_member.reason = reason
+        # Assign priority rank score
+        prio_map = {"hospital": 1, "education": 2, "marriage": 3, "business": 4, "personal": 5}
+        plan_member.priority_score = prio_map.get(reason.lower(), 5)
+
+    receipt_num = f"REC-2026-{installment.id:04d}"
+    
+    # Mark installment as 'paid' (Pending Admin Approval)
+    installment.status = InstallmentStatus.paid
+    installment.payment_method = payload.get("payment_method", "Google Pay UPI (nareshk1213@oksbi)")
+    installment.transaction_id = payment_id
+    installment.receipt_number = receipt_num
+
+    # Create Payment record with 'pending' status for Admin approval
+    payment = Payment(
+        installment_id=installment.id,
+        user_id=current_user.id,
+        amount=installment.total_amount,
+        payment_method=payload.get("payment_method", "Google Pay UPI (nareshk1213@oksbi)"),
+        transaction_id=payment_id,
+        status=PaymentStatus.pending,
+        notes=f"Pending Admin Verification. Emergency Reason: {reason.upper()}"
+    )
+    db.add(payment)
+    db.commit()
+
+    plan = db.query(ChitPlan).filter(ChitPlan.id == installment.plan_id).first()
+    plan_name_str = plan.plan_name if plan else "Chit Scheme"
+
+    # Trigger Notification
+    from app.services.notification_service import send_payment_submitted_notification
+    try:
+        send_payment_submitted_notification(
+            user_id=current_user.id,
+            user_name=current_user.name,
+            user_email=current_user.email,
+            user_phone=current_user.phone or "N/A",
+            plan_name=plan_name_str,
+            month_number=installment.month_number,
+            amount=installment.total_amount,
+            receipt_number=receipt_num,
+            transaction_id=payment_id
+        )
+    except Exception as e:
+        print("Failed to send payment submitted notification:", e)
+
+    return {
+        "success": True,
+        "pending_admin": True,
+        "message": "Payment request submitted to Admin! Verified receipt will be generated after Admin approves your payment.",
+        "receipt": None
+    }
 
 
 @router.get('/dues')
@@ -89,7 +234,7 @@ def get_my_dues(
     from app.models.chit_plan import ChitPlan
     
     # Find all installments for this user that are pending or overdue
-    installments = db.query(Installment, ChitPlan.name).join(
+    installments = db.query(Installment, ChitPlan.plan_name).join(
         PlanMember, Installment.plan_member_id == PlanMember.id
     ).join(
         ChitPlan, Installment.plan_id == ChitPlan.id
@@ -109,4 +254,3 @@ def get_my_dues(
             'status': inst.status
         })
     return results
-

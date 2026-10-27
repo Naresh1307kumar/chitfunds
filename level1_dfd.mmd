@@ -1,0 +1,38 @@
+flowchart TD
+    classDef default fill:#ffffff,stroke:#000000,stroke-width:1.5px,color:#000000;
+    linkStyle default stroke:#000000,stroke-width:1.5px;
+
+    Subscriber["USER / SUBSCRIBER"]
+    Admin["ADMIN / CHIT FOREMAN"]
+    SMSGateway["FAST2SMS / EMAIL GATEWAY"]
+
+    P1(("1.0<br/>User Auth and<br/>Role Control"))
+    P2(("2.0<br/>Chit Scheme<br/>Management"))
+    P3(("3.0<br/>Reverse Auction and<br/>Dividend Engine"))
+    P4(("4.0<br/>Installment Payment<br/>and Verification"))
+    P5(("5.0<br/>Automated Due and<br/>Reminder Scheduler"))
+
+    D1[("D1: USERS STORE")]
+    D2[("D2: CHIT SCHEMES STORE")]
+    D3[("D3: BIDS STORE")]
+    D4[("D4: PAYMENTS STORE")]
+    D5[("D5: NOTIFICATIONS STORE")]
+
+    Subscriber -->|"Login Info"| P1
+    P1 -->|"Save Profile"| D1
+
+    Admin -->|"Create Scheme Specs"| P2
+    P2 -->|"Save Config"| D2
+
+    Subscriber -->|"Submit Auction Bid"| P3
+    D2 -->|"Fetch Pool Specs"| P3
+    P3 -->|"Save Winning Bid"| D3
+
+    Subscriber -->|"Upload Receipt Ref"| P4
+    Admin -->|"Approve Receipt"| P4
+    P4 -->|"Update Status to PAID"| D4
+
+    P5 -->|"Scan Dues Near Expiry"| D4
+    P5 -->|"Fetch Member Contacts"| D1
+    P5 -->|"Trigger SMS and Emails"| SMSGateway
+    P5 -->|"Log Dispatch Status"| D5

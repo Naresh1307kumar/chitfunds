@@ -24,11 +24,13 @@ class ChitPlan(Base):
     id = Column(Integer, primary_key=True, index=True)
     plan_name = Column(String(100), nullable=False)
     plan_type = Column(Enum(PlanType), default=PlanType.silver)
+    chit_type = Column(String(20), default="lucky_draw")
     monthly_amount = Column(Float, nullable=False)
     total_members = Column(Integer, nullable=False)
     current_members = Column(Integer, default=0)
     duration_months = Column(Integer, nullable=False)
-    total_value = Column(Float, nullable=False)        # auto-calculated
+    total_value = Column(Float, nullable=False)        # auto-calculated (monthly_amount * total_members)
+    chit_value = Column(Float, nullable=True)          # Chit Value (Pool = monthly_amount * total_members)
     commission_rate = Column(Float, default=5.0)       # percentage
     net_prize_amount = Column(Float, nullable=False)   # auto-calculated
     start_date = Column(Date, nullable=False)

@@ -54,27 +54,27 @@ const MembersList = () => {
   const filteredMembers = members.filter(m => filter === 'all' || m.status === filter);
 
   return (
-    <div className="max-w-7xl mx-auto px-6 py-10">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
-        <div className="flex items-center gap-4">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-10">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 sm:mb-8 gap-4">
+        <div className="flex items-center gap-3 sm:gap-4">
           <button 
             onClick={() => navigate('/admin/dashboard')}
-            className="w-10 h-10 rounded-full border border-slate-200 hover:border-slate-350 hover:bg-slate-100 text-slate-500 hover:text-slate-800 flex items-center justify-center transition-colors flex-shrink-0 bg-white shadow-sm"
+            className="w-9 h-9 sm:w-10 sm:h-10 rounded-full border border-slate-200 hover:border-slate-350 hover:bg-slate-100 text-slate-500 hover:text-slate-800 flex items-center justify-center transition-colors flex-shrink-0 bg-white shadow-sm"
             title="Go Back"
           >
             <ArrowLeft className="w-4 h-4" />
           </button>
           <div>
-            <h1 className="text-3xl font-bold" style={{ color: '#1A2B49' }}>Members List</h1>
-          <p className="text-gray-500 mt-1">Manage and approve registered members.</p>
+            <h1 className="text-2xl sm:text-3xl font-bold" style={{ color: '#1A2B49' }}>Members List</h1>
+            <p className="text-gray-500 text-xs sm:text-sm mt-0.5">Manage and approve registered members.</p>
           </div>
         </div>
-        <div className="flex bg-white rounded-lg p-1 shadow-sm border border-gray-200">
+        <div className="flex flex-wrap bg-white rounded-lg p-1 shadow-sm border border-gray-200 w-full md:w-auto gap-1">
           {['all', 'pending', 'active', 'suspended'].map(f => (
             <button
               key={f}
               onClick={() => setFilter(f)}
-              className={`px-4 py-2 rounded-md text-sm font-semibold capitalize transition-all ${filter === f ? 'bg-blue-50 text-blue-700 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+              className={`flex-1 sm:flex-initial px-3 sm:px-4 py-1.5 sm:py-2 rounded-md text-xs sm:text-sm font-semibold capitalize transition-all text-center ${filter === f ? 'bg-blue-50 text-blue-700 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
             >
               {f}
             </button>

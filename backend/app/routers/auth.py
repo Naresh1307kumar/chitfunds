@@ -72,8 +72,11 @@ def forgot_password(data: ForgotPasswordRequest, db: Session = Depends(get_db)):
 
 @router.post("/reset-password")
 def reset_password(data: ResetPasswordRequest, db: Session = Depends(get_db)):
-    """Reset password using token"""
-    return auth_service.reset_password(db, data.token, data.new_password)
+    """Reset password using OTP / token"""
+    token_val = data.otp or data.token
+    if not token_val:
+        raise HTTPException(status_code=400, detail="OTP code is required")
+    return auth_service.reset_password(db, token_val, data.new_password, data.username)
 
 
 # ─── Logout ──────────────────────────────────────────────

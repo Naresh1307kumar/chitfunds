@@ -21,11 +21,13 @@ from app.routers.admin import draws as admin_draws
 from app.routers.admin import dashboard as admin_dashboard
 from app.routers.admin import payments as admin_payments
 from app.routers.admin import reports as admin_reports
+from app.routers.admin import pronotes as admin_pronotes
 from app.routers.member import profile as member_profile
 from app.routers.member import kyc as member_kyc
 from app.routers.member import plans as member_plans
 from app.routers.member import payments as member_payments
 from app.routers.member import notifications as member_notifications
+from app.routers.member import pronotes as member_pronotes
 from app.routers import public
 
 # Create all tables
@@ -68,11 +70,13 @@ app.include_router(admin_draws.router)
 app.include_router(admin_dashboard.router)
 app.include_router(admin_payments.router, prefix="/api/v1/admin")
 app.include_router(admin_reports.router, prefix="/api/v1/admin")
+app.include_router(admin_pronotes.router, prefix="/api/v1/admin")
 app.include_router(member_profile.router, prefix="/api/v1/member")
 app.include_router(member_kyc.router, prefix="/api/v1/member/kyc")
 app.include_router(member_plans.router, prefix="/api/v1/member/plans")
 app.include_router(member_payments.router, prefix="/api/v1/member")
 app.include_router(member_notifications.router, prefix="/api/v1/member")
+app.include_router(member_pronotes.router, prefix="/api/v1/member")
 
 
 @app.get("/")

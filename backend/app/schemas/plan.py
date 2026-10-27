@@ -6,6 +6,7 @@ from app.models.chit_plan import PlanType, PlanStatus
 class ChitPlanBase(BaseModel):
     plan_name: str
     plan_type: PlanType
+    chit_type: str = "lucky_draw"
     monthly_amount: float
     total_members: int
     duration_months: int
@@ -29,6 +30,7 @@ class ChitPlanResponse(ChitPlanBase):
     id: int
     current_members: int
     total_value: float
+    chit_value: Optional[float] = None
     net_prize_amount: float
     end_date: date
     status: PlanStatus
@@ -36,6 +38,7 @@ class ChitPlanResponse(ChitPlanBase):
     created_by: int
     created_at: datetime
     updated_at: Optional[datetime] = None
+    has_joined: bool = False
 
     class Config:
         from_attributes = True

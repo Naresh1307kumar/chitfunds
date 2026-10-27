@@ -46,8 +46,13 @@ export const AuthProvider = ({ children }) => {
     return res.data;
   };
 
-  const resetPassword = async (token, new_password) => {
-    const res = await api.post('/api/v1/auth/reset-password', { token, new_password });
+  const resetPassword = async (token, new_password, username = null) => {
+    const res = await api.post('/api/v1/auth/reset-password', {
+      token,
+      otp: token,
+      username,
+      new_password
+    });
     return res.data;
   };
 

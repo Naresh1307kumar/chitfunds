@@ -41,8 +41,9 @@ def register_member(db: Session, data: RegisterRequest) -> User:
 
 
 def login_user(db: Session, data: LoginRequest, required_role: UserRole) -> dict:
+    from sqlalchemy import or_
     user = db.query(User).filter(
-        User.username == data.username,
+        or_(User.username == data.username, User.email == data.username),
         User.is_deleted == False
     ).first()
 
@@ -129,51 +130,116 @@ def get_me(user: User) -> User:
     return user
 
 
-import uuid
+import random
 from datetime import timedelta
 from app.models.password_reset import PasswordReset
+from app.services.notification_service import send_email_mock
 
 def forgot_password(db: Session, username: str):
-    user = db.query(User).filter(User.username == username, User.is_deleted == False).first()
+    from sqlalchemy import func
+    user = db.query(User).filter(
+        (func.lower(User.username) == func.lower(username.strip())) |
+        (func.lower(User.email) == func.lower(username.strip())),
+        User.is_deleted == False
+    ).first()
     if not user:
-        # Don't reveal if username exists or not for security
-        return {"message": "If the username is registered, a password reset link will be sent."}
-    
-    # Generate token
-    token = str(uuid.uuid4())
-    expires = datetime.utcnow() + timedelta(hours=1)
-    
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="No registered account found with this username or email."
+        )
+
+    # Invalidate previous unused OTPs for this user
+    db.query(PasswordReset).filter(
+        PasswordReset.user_id == user.id,
+        PasswordReset.is_used == False
+    ).update({"is_used": True})
+
+    # Generate 6-digit numeric OTP
+    otp = f"{random.randint(100000, 999999)}"
+    expires = datetime.utcnow() + timedelta(minutes=15)
+
     reset_entry = PasswordReset(
         user_id=user.id,
-        reset_token=token,
-        expires_at=expires
+        reset_token=otp,
+        expires_at=expires,
+        is_used=False
     )
     db.add(reset_entry)
     db.commit()
-    
-    # In a real app, send email here. For now, we return the token for testing.
-    return {"message": "If the email is registered, a password reset link will be sent.", "reset_token_debug": token}
+
+    # Dispatch email with OTP to registered email
+    subject = "SecureChit - Password Reset OTP Code"
+    body = f"""Hello {user.name},
+
+You requested to reset your password for your SecureChit account ({user.username}).
+
+Your 6-Digit Password Reset OTP is:
+========================================
+{otp}
+========================================
+
+This OTP is valid for 15 minutes. Please enter this OTP in the application to reset your password.
+If you did not request this, please ignore this email.
+
+Best Regards,
+SecureChit Security Team
+"""
+    try:
+        send_email_mock(user.email, subject, body)
+    except Exception as e:
+        print("Failed to dispatch email:", e)
+
+    # Mask email for display (e.g. n***3@gmail.com)
+    parts = user.email.split("@")
+    if len(parts) == 2:
+        local, domain = parts
+        if len(local) <= 2:
+            masked_email = f"{local[0]}*@{domain}"
+        else:
+            masked_email = f"{local[0]}{'*' * (len(local) - 2)}{local[-1]}@{domain}"
+    else:
+        masked_email = user.email
+
+    return {
+        "message": f"OTP has been sent successfully to your registered email ({masked_email}).",
+        "email": masked_email,
+        "username": user.username,
+        "reset_token_debug": otp
+    }
 
 
-def reset_password(db: Session, token: str, new_password: str):
-    reset_entry = db.query(PasswordReset).filter(
-        PasswordReset.reset_token == token,
+def reset_password(db: Session, token: str, new_password: str, username: str = None):
+    from sqlalchemy import func
+    target_otp = (token or "").strip()
+
+    query = db.query(PasswordReset).filter(
+        PasswordReset.reset_token == target_otp,
         PasswordReset.is_used == False,
         PasswordReset.expires_at > datetime.utcnow()
-    ).first()
-    
+    )
+
+    if username:
+        user_match = db.query(User).filter(
+            (func.lower(User.username) == func.lower(username.strip())) |
+            (func.lower(User.email) == func.lower(username.strip()))
+        ).first()
+        if user_match:
+            query = query.filter(PasswordReset.user_id == user_match.id)
+
+    reset_entry = query.order_by(PasswordReset.id.desc()).first()
+
     if not reset_entry:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid or expired reset token"
+            detail="Invalid or expired OTP. Please enter the correct 6-digit code or request a new one."
         )
-        
+
     user = db.query(User).filter(User.id == reset_entry.user_id).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
-        
+
     user.password_hash = hash_password(new_password)
     reset_entry.is_used = True
     db.commit()
-    
-    return {"message": "Password reset successfully. You can now login."}
+
+    return {"message": "Password reset successfully. You can now login with your new password."}

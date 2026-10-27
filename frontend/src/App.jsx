@@ -18,14 +18,18 @@ import ConductDraw from './pages/admin/ConductDraw';
 import ExplorePlans from './pages/member/ExplorePlans';
 import MemberPayments from './pages/member/Payments';
 import AdminPayments from './pages/admin/Payments';
+import PronoteManagement from './pages/admin/PronoteManagement';
+import { MemberLayout } from './components/MemberLayout';
+import { AdminLayout } from './components/AdminLayout';
 import { ProtectedRoute, RoleRoute } from './components/ProtectedRoute';
+import { useAuth } from './context/AuthContext';
 import AOS from 'aos';
 import 'aos/dist/aos.css';
 import { 
   ShieldCheck, Menu, X, ArrowRight, ArrowLeft, Users, CalendarDays, 
   BellRing, BarChart3, CheckCircle2, Phone, Mail, MapPin,
   Star, Lock, TrendingUp, HeartHandshake, Zap, Crown, Shield,
-  Globe, Clock, Award, ChevronRight, CheckCircle, Github, Twitter, Linkedin
+  Globe, Clock, Award, ChevronRight, ChevronLeft, Coins, CheckCircle, Github, Twitter, Linkedin
 } from 'lucide-react';
 
 const Loader = ({ onComplete }) => {
@@ -50,6 +54,7 @@ const Loader = ({ onComplete }) => {
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const { user } = useAuth();
   const navLinks = ['Home', 'Plans', 'Features', 'Rules', 'Contact'];
 
   useEffect(() => {
@@ -58,44 +63,112 @@ const Navbar = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isOpen]);
+
+  const dashboardPath = user?.role === 'admin' ? '/admin/dashboard' : '/member/dashboard';
+
   return (
-    <nav className={`fixed w-full z-50 top-0 transition-all duration-300 ${scrolled ? 'bg-white/95 backdrop-blur-md py-4 shadow-md border-b border-slate-200/60' : 'bg-transparent py-6 border-b border-transparent'}`}>
+    <nav className={`fixed w-full z-50 top-0 transition-all duration-300 ${scrolled ? 'bg-white/95 backdrop-blur-md py-3 sm:py-4 shadow-md border-b border-slate-200/60' : 'bg-transparent py-4 sm:py-6 border-b border-transparent'}`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center">
           <div className="flex items-center gap-2" data-aos="fade-right">
-            <ShieldCheck className="h-8 w-8 text-corpBlue" />
-            <span className="text-2xl font-bold text-corpNavy tracking-tight">
+            <ShieldCheck className="h-7 w-7 sm:h-8 sm:w-8 text-corpBlue" />
+            <span className="text-xl sm:text-2xl font-bold text-corpNavy tracking-tight">
               SecureChit
             </span>
           </div>
-          <div className="hidden md:flex items-center space-x-10" data-aos="fade-down">
+          <div className="hidden md:flex items-center space-x-8 lg:space-x-10" data-aos="fade-down">
             {navLinks.map((link) => (
-              <a key={link} href={`#${link.toLowerCase()}`} className="text-corpTextLight hover:text-corpBlue transition-colors text-lg font-bold tracking-wide">
+              <a key={link} href={`#${link.toLowerCase()}`} className="text-corpTextLight hover:text-corpBlue transition-colors text-base lg:text-lg font-bold tracking-wide">
                 {link}
               </a>
             ))}
-            <Link to="/login" className="btn-primary py-3 px-8 text-base font-bold inline-block text-center shadow-lg">
-              Login
-            </Link>
+            {user ? (
+              <Link to={dashboardPath} className="btn-primary py-2.5 px-6 lg:py-3 lg:px-8 text-base font-bold inline-block text-center shadow-lg">
+                Dashboard
+              </Link>
+            ) : (
+              <Link to="/login" className="btn-primary py-2.5 px-6 lg:py-3 lg:px-8 text-base font-bold inline-block text-center shadow-lg">
+                Login
+              </Link>
+            )}
           </div>
           <div className="md:hidden flex items-center">
-            <button onClick={() => setIsOpen(!isOpen)} className="text-slate-600 hover:text-corpBlue">
+            <button onClick={() => setIsOpen(!isOpen)} className="text-slate-700 hover:text-corpBlue p-2 rounded-lg focus:outline-none" aria-label="Toggle navigation">
               {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
             </button>
           </div>
         </div>
       </div>
       {isOpen && (
-        <div className="md:hidden bg-white mt-4 border-t border-slate-200 shadow-xl absolute w-full">
-          <div className="px-4 py-4 space-y-2">
-            {navLinks.map((link) => (
-              <a key={link} href={`#${link.toLowerCase()}`} className="block px-4 py-3 text-base font-medium text-slate-600 hover:text-corpBlue hover:bg-slate-800 rounded-md transition-colors" onClick={() => setIsOpen(false)}>
-                {link}
-              </a>
-            ))}
-            <Link to="/login" className="block w-full text-center mt-6 py-3 btn-primary text-white">
-              Login
-            </Link>
+        <div className="fixed inset-0 z-[100] bg-white flex flex-col h-screen w-screen overflow-hidden animate-fade-in font-sans [ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          {/* Mobile Full Screen Header */}
+          <div className="flex items-center justify-between px-6 py-5 border-b border-slate-100 bg-white">
+            <div className="flex items-center gap-2">
+              <ShieldCheck className="h-8 w-8 text-corpBlue" />
+              <span className="text-2xl font-bold text-corpNavy tracking-tight">
+                SecureChit
+              </span>
+            </div>
+            <button 
+              onClick={() => setIsOpen(false)}
+              className="w-10 h-10 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center transition-colors"
+              aria-label="Close navigation"
+            >
+              <X className="h-6 w-6 text-slate-800" />
+            </button>
+          </div>
+
+          {/* Full Screen Menu Body */}
+          <div className="flex-1 flex flex-col justify-between px-6 py-8 bg-white overflow-y-auto [ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            <div className="space-y-4">
+              <p className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-2">Navigation Menu</p>
+              {navLinks.map((link) => (
+                <a 
+                  key={link} 
+                  href={`#${link.toLowerCase()}`} 
+                  className="block text-2xl font-extrabold text-slate-900 hover:text-corpBlue py-3 border-b border-slate-100 transition-colors" 
+                  onClick={() => setIsOpen(false)}
+                >
+                  {link}
+                </a>
+              ))}
+            </div>
+
+            <div className="space-y-4 pt-6 border-t border-slate-100">
+              {user ? (
+                <Link 
+                  to={dashboardPath} 
+                  className="block w-full text-center py-4 bg-gradient-to-r from-blue-600 to-corpBlue text-white text-lg font-bold rounded-2xl shadow-lg transition-all flex items-center justify-center gap-2" 
+                  onClick={() => setIsOpen(false)}
+                >
+                  <ArrowLeft className="w-5 h-5" /> Return to {user.role === 'admin' ? 'Admin' : 'Member'} Dashboard
+                </Link>
+              ) : (
+                <Link 
+                  to="/login" 
+                  className="block w-full text-center py-4 bg-gradient-to-r from-blue-600 to-corpBlue text-white text-lg font-bold rounded-2xl shadow-lg transition-all" 
+                  onClick={() => setIsOpen(false)}
+                >
+                  Login to Account
+                </Link>
+              )}
+
+              <div className="flex justify-center gap-4 text-xs font-semibold text-slate-400 pt-2">
+                <span>🛡️ 256-Bit SSL Secured</span>
+                <span>•</span>
+                <span>Governed Chit Fund</span>
+              </div>
+            </div>
           </div>
         </div>
       )}
@@ -122,38 +195,38 @@ const HeroSection = () => {
   }, []);
 
   return (
-    <div className="section-gray pt-24 pb-12 lg:pt-36 lg:pb-16 flex flex-col justify-center min-h-screen" id="home">
-      <div className="max-w-7xl mx-auto px-4 relative z-10 w-full">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-center">
+    <div className="section-gray pt-20 pb-10 sm:pt-28 sm:pb-16 lg:pt-36 lg:pb-16 flex flex-col justify-center min-h-screen" id="home">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 w-full">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
           
           <div className="flex flex-col items-start text-left" data-aos="fade-right" data-aos-duration="1000">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-cardBg text-corpBlue text-sm font-semibold mb-8 border border-cardBorder shadow-md">
-              <span className="flex h-2 w-2 rounded-full bg-corpGold"></span>
-              Professional Financial Management
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 sm:px-4 sm:py-2 rounded-full bg-cardBg text-corpBlue text-xs sm:text-sm font-semibold mb-6 sm:mb-8 border border-cardBorder shadow-md">
+              <span className="flex h-2 w-2 rounded-full bg-corpGold animate-pulse"></span>
+              Professional Chit Fund Management
             </div>
             
-            <h1 className="text-5xl md:text-7xl font-bold text-corpNavy mb-6 tracking-tight leading-tight">
-              Secure Chit Fund <br className="hidden md:block" />
+            <h1 className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-corpNavy mb-4 sm:mb-6 tracking-tight leading-tight">
+              Secure Chit Fund <br className="hidden sm:block" />
               <span className="text-corpBlue">
                 Management System
               </span>
             </h1>
-            <p className="mt-6 text-xl text-corpTextLight mb-6 leading-relaxed max-w-lg">
+            <p className="mt-2 sm:mt-6 text-base sm:text-xl text-corpTextLight mb-6 leading-relaxed max-w-lg">
               Safe, Transparent and Smart Chit Fund Management built for the modern investor.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
-              <button className="btn-primary flex items-center justify-center gap-2 text-lg" onClick={() => alert('Join functionality disabled.')}>
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 w-full sm:w-auto">
+              <Link to="/register" className="btn-primary flex items-center justify-center gap-2 text-base sm:text-lg w-full sm:w-auto">
                 Join Now <ArrowRight className="w-5 h-5" />
-              </button>
-              <a href="#plans" className="btn-secondary flex items-center justify-center gap-2 text-lg">
+              </Link>
+              <a href="#plans" className="btn-secondary flex items-center justify-center gap-2 text-base sm:text-lg w-full sm:w-auto">
                 View Plans
               </a>
             </div>
           </div>
 
-          <div className="relative hidden lg:block" data-aos="fade-left" data-aos-duration="1200">
-            <div className="relative p-2 bg-cardBg border border-cardBorder rounded-[16px] shadow-[0_8px_30px_rgb(0,0,0,0.06)]">
-              <img src="/images/hero.png" alt="Secure Digital Chit Fund" className="rounded-xl object-cover object-center w-full h-[400px]" />
+          <div className="relative w-full mt-6 lg:mt-0" data-aos="fade-left" data-aos-duration="1200">
+            <div className="relative p-2 bg-cardBg border border-cardBorder rounded-[20px] shadow-[0_8px_30px_rgb(0,0,0,0.06)]">
+              <img src="/images/hero.png" alt="Secure Digital Chit Fund" className="rounded-xl object-cover object-center w-full h-[240px] sm:h-[350px] lg:h-[400px]" />
             </div>
           </div>
 
@@ -161,20 +234,20 @@ const HeroSection = () => {
       </div>
 
       {/* Statistics Section */}
-      <div className="w-full max-w-7xl mx-auto px-4 mt-24 relative z-10">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+      <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-12 sm:mt-24 relative z-10">
+        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
           {[
             { label: "Active Customers", value: stats.activeCustomers, icon: Users, delay: "0" },
             { label: "Successful Plans", value: stats.successfulPlans, icon: Award, delay: "100" },
             { label: "Satisfaction", value: "99%", icon: Star, delay: "200" },
             { label: "Support", value: "24/7", icon: Clock, delay: "300" }
           ].map((stat, idx) => (
-            <div key={idx} data-aos="fade-up" data-aos-delay={stat.delay} className="corp-card p-6 flex flex-col items-center text-center">
-              <div className="w-12 h-12 bg-bgAlt2 rounded-full flex items-center justify-center mb-4">
-                 <stat.icon className="w-6 h-6 text-corpBlue" />
+            <div key={idx} data-aos="fade-up" data-aos-delay={stat.delay} className="corp-card p-4 sm:p-6 flex flex-col items-center text-center">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-bgAlt2 rounded-full flex items-center justify-center mb-3 sm:mb-4">
+                 <stat.icon className="w-5 h-5 sm:w-6 sm:h-6 text-corpBlue" />
               </div>
-              <h4 className="text-3xl font-bold text-slate-900 mb-2">{stat.value}</h4>
-              <p className="text-corpTextLight text-sm uppercase tracking-wider font-semibold">{stat.label}</p>
+              <h4 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-1 sm:mb-2">{stat.value}</h4>
+              <p className="text-corpTextLight text-xs sm:text-sm uppercase tracking-wider font-semibold">{stat.label}</p>
             </div>
           ))}
         </div>
@@ -228,15 +301,26 @@ const AboutUsSection = () => {
 const ChitPlans = ({ onJoinPlan, onViewDetails }) => {
   const [plans, setPlans] = useState([]);
   const [loading, setLoading] = useState(true);
+  const scrollRef = React.useRef(null);
+
+  const scroll = (direction) => {
+    if (scrollRef.current) {
+      const { scrollLeft, clientWidth } = scrollRef.current;
+      const scrollAmount = clientWidth * 0.8;
+      scrollRef.current.scrollTo({
+        left: direction === 'left' ? scrollLeft - scrollAmount : scrollLeft + scrollAmount,
+        behavior: 'smooth'
+      });
+    }
+  };
 
   useEffect(() => {
     const fetchPublicPlans = async () => {
       try {
         const res = await api.get('/api/v1/public/plans');
-        // Map backend schema to frontend expectations
         const mappedPlans = res.data.map(p => {
           let IconComp = Shield;
-          let badgeText = "Bronze";
+          let badgeText = "Standard";
           let isPopular = false;
 
           if (p.plan_type === 'gold') {
@@ -256,6 +340,7 @@ const ChitPlans = ({ onJoinPlan, onViewDetails }) => {
             totalMembers: p.total_members,
             commissionRate: p.commission_rate,
             return: p.total_value,
+            chitType: 'auction',
             icon: IconComp,
             badge: badgeText,
             popular: isPopular
@@ -291,59 +376,94 @@ const ChitPlans = ({ onJoinPlan, onViewDetails }) => {
   }
 
   return (
-    <section className="section-gray" id="plans">
+    <section className="section-gray py-16" id="plans">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        <div className="text-center mb-10" data-aos="fade-up">
-          <h2 className="text-4xl md:text-5xl font-bold text-corpNavy mb-6 tracking-tight">Investment Plans</h2>
-          <p className="text-lg text-corpTextLight">Choose from our most rewarding investment plans tailored for your growth.</p>
-        </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
+        {/* Section Header with Left / Right Scroll Buttons */}
+        <div className="flex flex-col md:flex-row md:items-end justify-between mb-8" data-aos="fade-up">
+          <div>
+            <span className="text-xs font-extrabold uppercase tracking-widest text-amber-700 bg-amber-50 px-3 py-1 rounded-full border border-amber-200 mb-2 inline-block">
+              Auction Chit Schemes ({plans.length} Available)
+            </span>
+            <h2 className="text-3xl md:text-5xl font-bold text-corpNavy tracking-tight">Available Chit Plans</h2>
+            <p className="text-slate-500 text-sm md:text-base mt-2">Scroll horizontally to explore our high-yield auction investment schemes.</p>
+          </div>
+
+          <div className="flex items-center gap-3 mt-4 md:mt-0">
+            <button 
+              onClick={() => scroll('left')}
+              className="w-11 h-11 rounded-full border border-slate-200 hover:border-corpBlue bg-white hover:bg-blue-50 text-slate-600 hover:text-corpBlue flex items-center justify-center transition-all shadow-sm active:scale-95"
+              title="Previous Plans"
+            >
+              <ChevronLeft className="w-5 h-5" />
+            </button>
+            <button 
+              onClick={() => scroll('right')}
+              className="w-11 h-11 rounded-full border border-slate-200 hover:border-corpBlue bg-white hover:bg-blue-50 text-slate-600 hover:text-corpBlue flex items-center justify-center transition-all shadow-sm active:scale-95"
+              title="Next Plans"
+            >
+              <ChevronRight className="w-5 h-5" />
+            </button>
+          </div>
+        </div>
+
+        {/* Horizontal Carousel Track */}
+        <div 
+          ref={scrollRef} 
+          className="flex flex-row flex-nowrap gap-6 overflow-x-auto snap-x snap-mandatory pb-8 pt-2 px-1 scroll-smooth"
+          style={{ display: 'flex', flexDirection: 'row', flexWrap: 'nowrap', overflowX: 'auto', WebkitOverflowScrolling: 'touch', scrollbarWidth: 'thin' }}
+        >
           {plans.map((plan, index) => (
-            <div key={index} data-aos="fade-up" data-aos-delay={index * 150} className={plan.popular ? 'plan-card-popular shadow-lg hover:shadow-xl transition-shadow' : 'plan-card hover:shadow-md transition-shadow'}>
-              
-              {plan.popular && (
-                <div className="bg-corpGold text-white text-center py-2 text-sm font-bold uppercase tracking-wider">
-                  Most Popular
-                </div>
-              )}
-
-              <div className="p-8 border-b border-gray-100">
-                <div className="flex justify-between items-start mb-6">
-                  <div className="w-12 h-12 rounded bg-bgAlt2 flex items-center justify-center border border-cardBorder">
-                    {(() => { const PlanIcon = plan.icon || Shield; return <PlanIcon className="w-6 h-6 text-corpBlue" />; })()}
-                  </div>
-                  {!plan.popular && (
-                    <span className="px-3 py-1 rounded text-xs font-bold uppercase tracking-wider bg-bgAlt2 text-corpTextLight border border-cardBorder">
-                      {plan.badge}
-                    </span>
-                  )}
-                </div>
-
-                <h3 className="text-2xl font-bold text-slate-800 mb-2">{plan.name}</h3>
-                <div className="flex items-baseline gap-1">
-                  <span className="text-5xl font-extrabold text-corpBlue tracking-tight">₹{plan.monthlyAmount.toLocaleString()}</span>
-                  <span className="font-medium text-corpTextLight">/month</span>
-                </div>
+            <div 
+              key={index} 
+              className="min-w-[300px] sm:min-w-[350px] max-w-[360px] flex-shrink-0 snap-start shadow-sm hover:shadow-xl transition-all duration-300 relative overflow-hidden rounded-3xl border border-slate-200 flex flex-col bg-white group hover:-translate-y-1"
+            >
+              <div className="bg-gradient-to-r from-amber-500 to-orange-500 text-white text-center py-2.5 text-xs font-extrabold uppercase tracking-widest flex items-center justify-center gap-1.5 shadow-inner">
+                <Coins className="w-4 h-4" /> Auction Scheme
               </div>
 
-              <div className="p-8">
-                <ul className="space-y-5 mb-6 text-slate-700">
-                  <li className="flex items-center gap-4">
-                    <CheckCircle2 className="w-5 h-5 text-corpBlue" />
-                    <span>Duration: <strong className="font-semibold">{plan.duration} Months</strong></span>
+              <div className="p-7 border-b border-slate-100 flex-grow">
+                <div className="flex justify-between items-start mb-5">
+                  <div className="w-12 h-12 rounded-2xl bg-amber-50 flex items-center justify-center border border-amber-100 shadow-sm">
+                    {(() => { const PlanIcon = plan.icon || Shield; return <PlanIcon className="w-6 h-6 text-amber-600" />; })()}
+                  </div>
+                  <span className="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-slate-100 text-slate-700 border border-slate-200">
+                    {plan.badge}
+                  </span>
+                </div>
+
+                <h3 className="text-xl font-bold text-slate-900 mb-3 group-hover:text-corpBlue transition-colors">{plan.name}</h3>
+                
+                <div className="flex items-baseline gap-1 mb-2">
+                  <span className="text-4xl font-extrabold text-corpBlue tracking-tight">₹{plan.monthlyAmount.toLocaleString()}</span>
+                  <span className="font-medium text-slate-500 text-sm">/month</span>
+                </div>
+                <p className="text-xs text-slate-400 font-medium">Total Value: <strong className="text-slate-700">₹{plan.return.toLocaleString()}</strong></p>
+              </div>
+
+              <div className="p-7 bg-slate-50/50">
+                <ul className="space-y-3.5 mb-6 text-slate-700 text-xs">
+                  <li className="flex items-center gap-3">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-500 flex-shrink-0" />
+                    <span>Duration: <strong className="font-semibold text-slate-900">{plan.duration} Months</strong></span>
                   </li>
-                  <li className="flex items-center gap-4">
-                    <CheckCircle2 className="w-5 h-5 text-corpBlue" />
-                    <span>Est. Return: <strong className="font-semibold">₹{plan.return.toLocaleString()}</strong></span>
+                  <li className="flex items-center gap-3">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-500 flex-shrink-0" />
+                    <span>Total Pool: <strong className="font-semibold text-slate-900">₹{plan.return.toLocaleString()}</strong></span>
                   </li>
                 </ul>
-                <div className="space-y-4">
-                  <button className="w-full py-3 rounded font-bold transition-colors bg-cardBg text-slate-700 border border-cardBorder hover:bg-bgAlt1" onClick={() => onViewDetails(plan)}>
+                <div className="space-y-2.5">
+                  <button 
+                    className="w-full py-2.5 rounded-xl text-xs font-bold transition-all bg-white text-slate-700 border border-slate-200 hover:bg-slate-100 shadow-sm" 
+                    onClick={() => onViewDetails(plan)}
+                  >
                     View Details
                   </button>
-                  <button className={`w-full py-3 rounded font-bold transition-colors flex justify-center items-center gap-2 ${plan.popular ? 'btn-primary' : 'bg-bgAlt2 text-corpBlue hover:bg-bgAlt1 border border-cardBorder'}`} onClick={() => onJoinPlan(plan)}>
-                    Join Plan <ChevronRight className="w-4 h-4" />
+                  <button 
+                    className="w-full py-2.5 rounded-xl text-xs font-bold transition-all flex justify-center items-center gap-2 bg-gradient-to-r from-blue-600 to-corpBlue text-white hover:from-blue-700 hover:to-blue-900 shadow-md hover:shadow-lg" 
+                    onClick={() => onJoinPlan(plan)}
+                  >
+                    Join Scheme <ChevronRight className="w-3.5 h-3.5" />
                   </button>
                 </div>
               </div>
@@ -491,7 +611,7 @@ const Contact = () => {
                 </div>
                 <div>
                   <h3 className="font-bold text-lg mb-1 text-slate-800 tracking-wide">Phone</h3>
-                  <p className="text-corpTextLight">+91 1800 123 4567</p>
+                  <a href="tel:+919489771511" className="text-corpTextLight hover:text-corpBlue transition-colors font-medium">+91 94897 71511</a>
                 </div>
               </div>
               
@@ -501,7 +621,7 @@ const Contact = () => {
                 </div>
                 <div>
                   <h3 className="font-bold text-lg mb-1 text-slate-800 tracking-wide">Email</h3>
-                  <p className="text-corpTextLight">support@securechit.com</p>
+                  <a href="mailto:naresk1213@gmail.com" className="text-corpTextLight hover:text-corpBlue transition-colors font-medium">naresk1213@gmail.com</a>
                 </div>
               </div>
               
@@ -574,123 +694,146 @@ const PlanDetailsModal = ({ plan, onClose, onJoin }) => {
     return maxBid - ((maxBid - minBid) / (duration - 1)) * (month - 1);
   };
 
-  // Pre-calculate monthly data to get actual total paid including dividends
+  const isAuction = plan.chitType === 'auction' || plan.chit_type === 'auction';
+
+  // Calculate real auction month-by-month schedule
   const monthlyData = Array.from({ length: duration }, (_, i) => {
     const month = i + 1;
-    const bidPct = getBidPct(month);
-    const bidAmount = chitValue * bidPct;
-    const dividend = Math.max(0, (bidAmount - commissionPerMonth) / N);
-    const netPay = monthly - dividend;
-    return { month, bidPct, winnerPrize: chitValue - bidAmount, dividend, netPay };
+    if (month === 1) {
+      // Month 1: Foreman Company
+      return {
+        month: 1,
+        winnerPrize: chitValue,
+        discount: 0,
+        commission: 0,
+        dividend: 0,
+        netPay: monthly,
+        winnerName: 'COMPANY (Foreman)'
+      };
+    } else if (month === duration) {
+      // Month N: Last Member
+      return {
+        month,
+        winnerPrize: chitValue,
+        discount: 0,
+        commission: 0,
+        dividend: 0,
+        netPay: monthly,
+        winnerName: 'Last Member'
+      };
+    } else {
+      // Month 2 to Month N-1: Auction bidding
+      // Winning bid scales from 70% to 98% of chit value
+      const bidRatio = 0.70 + (month - 2) * (0.28 / Math.max(1, duration - 2));
+      const winningBid = Math.round(chitValue * bidRatio);
+      const disc = chitValue - winningBid;
+      const comm = Math.round(disc * (commissionRate || 0.05));
+      const netDisc = Math.max(0, disc - comm);
+      const div = Math.round((netDisc / N) * 100) / 100;
+      const netPay = Math.round((monthly - div) * 100) / 100;
+      return {
+        month,
+        winnerPrize: winningBid,
+        discount: disc,
+        commission: comm,
+        dividend: div,
+        netPay,
+        winnerName: 'Auction Winner'
+      };
+    }
   });
 
-  const totalPaidByMember = monthlyData.reduce((sum, item) => sum + item.netPay, 0);
-
-  // Per-month dynamic calculation
-  const projections = monthlyData.map(item => {
-    const winnerNetInterest = totalPaidByMember - item.winnerPrize; // positive = interest cost
-    return {
-      month: item.month,
-      bidPct: Math.round(item.bidPct * 100),
-      winnerPrize: Math.round(item.winnerPrize),
-      winnerNetInterest: Math.round(winnerNetInterest),
-      dividend: Math.round(item.dividend),
-      netPay: Math.round(item.netPay),
-    };
-  });
-
-  const netPrize = chitValue - commissionPerMonth;
-  const commission = commissionPerMonth;
-  const totalValue = chitValue;
-
-  // Safe icon render - plan.icon may be undefined when coming from API
+  const totalPaidByMember = Math.round(monthlyData.reduce((sum, item) => sum + item.netPay, 0));
   const PlanIcon = plan.icon || Shield;
 
   if (!monthly || monthly <= 0) return null; // guard against bad data
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-      <div className="bg-white rounded-3xl w-full max-w-2xl overflow-hidden shadow-2xl border border-slate-100 flex flex-col max-h-[90vh]">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 font-sans">
+      <div className="bg-white rounded-3xl w-full max-w-3xl overflow-hidden shadow-2xl border border-slate-100 flex flex-col max-h-[92vh]">
         
         {/* Header */}
-        <div className="px-8 py-6 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+        <div className="px-8 py-5 border-b border-slate-100 flex justify-between items-center bg-slate-900 text-white">
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-xl bg-blue-50 flex items-center justify-center border border-blue-100">
-              <PlanIcon className="w-6 h-6 text-corpBlue" />
+            <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center border border-white/20">
+              <PlanIcon className="w-5 h-5 text-amber-400" />
             </div>
             <div>
-              <h2 className="text-2xl font-bold text-slate-900">{plan.name} Overview</h2>
-              <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-50 text-blue-600 border border-blue-150 uppercase tracking-wider">{plan.badge}</span>
+              <h2 className="text-xl font-bold">{plan.name} Schedule & Calculations</h2>
+              <span className="px-2 py-0.5 rounded text-[10px] font-extrabold bg-amber-500 text-slate-950 uppercase tracking-wider">
+                {isAuction ? 'Auction Scheme (Discount + Dividend)' : 'Lucky Draw Scheme'}
+              </span>
             </div>
           </div>
-          <button onClick={onClose} className="text-slate-400 hover:text-slate-700 text-3xl font-light">&times;</button>
+          <button onClick={onClose} className="text-slate-400 hover:text-white text-3xl font-light">&times;</button>
         </div>
 
         {/* Content */}
-        <div className="p-8 overflow-y-auto flex-grow space-y-6 text-slate-700 text-sm">
+        <div className="p-6 overflow-y-auto flex-grow space-y-6 text-slate-700 text-xs">
           
           {/* Key Metrics */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-            <div className="bg-slate-50 rounded-2xl p-4 border border-slate-150 text-center">
-              <span className="text-xs text-slate-400 block mb-1">Monthly Dues</span>
-              <strong className="text-lg font-bold text-slate-900">₹{plan.monthlyAmount.toLocaleString()}</strong>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div className="bg-slate-50 rounded-2xl p-3.5 border border-slate-200 text-center">
+              <span className="text-[11px] text-slate-400 block mb-0.5">Gross Monthly Dues</span>
+              <strong className="text-base font-extrabold text-slate-900">₹{monthly.toLocaleString()}</strong>
             </div>
-            <div className="bg-slate-50 rounded-2xl p-4 border border-slate-150 text-center">
-              <span className="text-xs text-slate-400 block mb-1">Total Pool Value</span>
-              <strong className="text-lg font-bold text-slate-900">₹{totalValue.toLocaleString()}</strong>
+            <div className="bg-slate-50 rounded-2xl p-3.5 border border-slate-200 text-center">
+              <span className="text-[11px] text-slate-400 block mb-0.5">Total Chit Value</span>
+              <strong className="text-base font-extrabold text-corpBlue">₹{chitValue.toLocaleString()}</strong>
             </div>
-            <div className="bg-slate-50 rounded-2xl p-4 border border-slate-150 text-center">
-              <span className="text-xs text-slate-400 block mb-1">Net Prize Payout</span>
-              <strong className="text-lg font-bold text-slate-900">₹{netPrize.toLocaleString()}</strong>
+            <div className="bg-slate-50 rounded-2xl p-3.5 border border-slate-200 text-center">
+              <span className="text-[11px] text-slate-400 block mb-0.5">Duration & Members</span>
+              <strong className="text-base font-extrabold text-slate-900">{duration} Months / {N} Members</strong>
             </div>
-            <div className="bg-slate-50 rounded-2xl p-4 border border-slate-150 text-center">
-              <span className="text-xs text-slate-400 block mb-1">Commission (5%)</span>
-              <strong className="text-lg font-bold text-slate-900">₹{commission.toLocaleString()}</strong>
+            <div className="bg-emerald-50 rounded-2xl p-3.5 border border-emerald-200 text-center">
+              <span className="text-[11px] text-emerald-700 font-bold block mb-0.5">Est. Total Paid / Member</span>
+              <strong className="text-base font-extrabold text-emerald-800">₹{totalPaidByMember.toLocaleString()}</strong>
             </div>
           </div>
 
-          {/* About Scheme */}
+          {/* Month-by-Month Schedule Table */}
           <div>
-            <h3 className="font-bold text-base text-slate-900 mb-2">About This Scheme</h3>
-            <p className="text-slate-500 leading-relaxed">
-              This is a structured 12-month savings group consisting of 12 verified members. Every month, an auction is held. Members bid for the prize pool by offering a discount (up to 30%). The winning bidder gets the net prize money, and their offered discount is distributed equally among all members as a dividend, reducing the next installment payment.
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="font-bold text-sm text-slate-900">Month-by-Month Auction Schedule & Net Dues Table</h3>
+              <span className="text-[10px] font-bold bg-blue-50 text-corpBlue px-2.5 py-1 rounded-full border border-blue-200">
+                5% Foreman Commission Applied
+              </span>
+            </div>
+            <p className="text-[11px] text-slate-500 mb-3">
+              Early bidders bid higher discounts (receiving lower prize money early, but giving higher dividends to everyone). Late bidders receive full prize money.
             </p>
-          </div>
 
-          {/* Month-by-Month Breakdown Table */}
-          <div>
-            <h3 className="font-bold text-base text-slate-900 mb-1">Month-by-Month Prize Breakdown</h3>
-            <p className="text-xs text-slate-400 mb-3">
-              See how much the winner receives and how much interest they pay, depending on which month they win the draw.
-            </p>
-            <div className="border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
+            <div className="border border-slate-200 rounded-2xl overflow-hidden shadow-sm bg-white">
               <div className="max-h-72 overflow-y-auto">
-                <table className="w-full text-left border-collapse">
-                  <thead className="sticky top-0 z-10">
-                    <tr className="bg-slate-50 border-b border-slate-200 text-xs font-bold uppercase tracking-wider text-slate-500">
-                      <th className="px-5 py-3">Month</th>
-                      <th className="px-5 py-3 text-blue-600">Winner Payout (Prize Amount)</th>
-                      <th className="px-5 py-3 text-red-500">Interest Cost to Pay</th>
+                <table className="w-full text-left border-collapse text-xs">
+                  <thead className="sticky top-0 z-10 bg-slate-100 text-slate-700 font-bold border-b border-slate-200 uppercase tracking-wider text-[10px]">
+                    <tr>
+                      <th className="px-4 py-3">Month</th>
+                      <th className="px-4 py-3 text-emerald-700">🏆 Winner Payout</th>
+                      <th className="px-4 py-3 text-amber-700">🏷️ Discount</th>
+                      <th className="px-4 py-3 text-blue-700">💰 Dividend / Member</th>
+                      <th className="px-4 py-3 text-indigo-900 text-right">💳 Net Payable</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-100">
-                    {projections.map((p) => (
-                      <tr key={p.month} className="hover:bg-blue-50/30 transition-colors">
-                        <td className="px-5 py-3 font-semibold text-slate-700">
-                          Month {p.month}
-                          {p.month === duration && (
-                            <span className="ml-2 text-[10px] bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded-full font-bold">Last</span>
-                          )}
+                  <tbody className="divide-y divide-slate-100 font-medium text-slate-800">
+                    {monthlyData.map((m) => (
+                      <tr key={m.month} className={`hover:bg-blue-50/50 transition-colors ${m.month === 1 ? 'bg-amber-50/40 font-bold' : ''}`}>
+                        <td className="px-4 py-2.5 font-bold">
+                          Month {m.month}
+                          {m.month === 1 && <span className="ml-1.5 text-[9px] bg-amber-200 text-amber-900 px-1.5 py-0.2 rounded font-extrabold">COMPANY</span>}
+                          {m.month === duration && <span className="ml-1.5 text-[9px] bg-emerald-200 text-emerald-900 px-1.5 py-0.2 rounded font-extrabold">LAST</span>}
                         </td>
-                        <td className="px-5 py-3 font-bold text-blue-700 text-base">
-                          ₹{p.winnerPrize.toLocaleString()}
+                        <td className="px-4 py-2.5 font-bold text-emerald-700">
+                          ₹{m.winnerPrize.toLocaleString()}
                         </td>
-                        <td className="px-5 py-3">
-                          {p.winnerNetInterest > 0 ? (
-                            <span className="text-red-500 font-semibold">₹{p.winnerNetInterest.toLocaleString()}</span>
-                          ) : (
-                            <span className="text-emerald-600 font-semibold">₹0 (No interest!)</span>
-                          )}
+                        <td className="px-4 py-2.5 text-amber-700 font-semibold">
+                          ₹{m.discount.toLocaleString()}
+                        </td>
+                        <td className="px-4 py-2.5 text-blue-700 font-bold">
+                          +₹{m.dividend.toLocaleString()}
+                        </td>
+                        <td className="px-4 py-2.5 text-right font-extrabold text-indigo-900 text-sm">
+                          ₹{m.netPay.toLocaleString()}
                         </td>
                       </tr>
                     ))}
@@ -698,8 +841,12 @@ const PlanDetailsModal = ({ plan, onClose, onJoin }) => {
                 </table>
               </div>
             </div>
-            <div className="mt-3 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 text-xs text-amber-800">
-              💡 <strong>Note:</strong> Early month winners receive a lower prize and pay more interest. Late month winners receive a higher prize and pay less interest.
+
+            <div className="mt-3 bg-blue-50 border border-blue-200 rounded-xl p-3.5 text-xs text-blue-900 flex items-center justify-between">
+              <div>
+                <strong className="block font-bold">🧮 How Net Payable is Calculated:</strong>
+                <span>Gross Monthly Dues (₹{monthly.toLocaleString()}) - Member Dividend = <strong>Net Payable</strong></span>
+              </div>
             </div>
           </div>
 
@@ -1061,62 +1208,67 @@ function App() {
       <Route path="/reset-password" element={<ResetPassword />} />
       <Route path="/member/dashboard" element={
         <ProtectedRoute>
-          <MemberDashboard />
+          <MemberLayout><MemberDashboard /></MemberLayout>
         </ProtectedRoute>
       } />
       <Route path="/member/kyc" element={
         <ProtectedRoute>
-          <KYCUpload />
+          <MemberLayout><KYCUpload /></MemberLayout>
         </ProtectedRoute>
       } />
       <Route path="/member/guarantor" element={
         <ProtectedRoute>
-          <GuarantorForm />
+          <MemberLayout><GuarantorForm /></MemberLayout>
         </ProtectedRoute>
       } />
       <Route path="/admin/dashboard" element={
         <RoleRoute role="admin">
-          <AdminDashboard />
+          <AdminLayout><AdminDashboard /></AdminLayout>
         </RoleRoute>
       } />
       <Route path="/admin/members" element={
         <RoleRoute role="admin">
-          <MembersList />
+          <AdminLayout><MembersList /></AdminLayout>
         </RoleRoute>
       } />
       <Route path="/admin/members/:id" element={
         <RoleRoute role="admin">
-          <MemberDetails />
+          <AdminLayout><MemberDetails /></AdminLayout>
         </RoleRoute>
       } />
       <Route path="/admin/plans" element={
         <RoleRoute role="admin">
-          <ManagePlans />
+          <AdminLayout><ManagePlans /></AdminLayout>
         </RoleRoute>
       } />
       <Route path="/admin/plans/:id/members" element={
         <RoleRoute role="admin">
-          <PlanMembers />
+          <AdminLayout><PlanMembers /></AdminLayout>
         </RoleRoute>
       } />
       <Route path="/admin/plans/:id/draws" element={
         <RoleRoute role="admin">
-          <ConductDraw />
+          <AdminLayout><ConductDraw /></AdminLayout>
         </RoleRoute>
       } />
       <Route path="/member/plans" element={
         <ProtectedRoute>
-          <ExplorePlans />
+          <MemberLayout><ExplorePlans /></MemberLayout>
         </ProtectedRoute>
       } />
       <Route path="/member/payments" element={
         <ProtectedRoute>
-          <MemberPayments />
+          <MemberLayout><MemberPayments /></MemberLayout>
         </ProtectedRoute>
       } />
       <Route path="/admin/payments" element={
         <RoleRoute role="admin">
-          <AdminPayments />
+          <AdminLayout><AdminPayments /></AdminLayout>
+        </RoleRoute>
+      } />
+      <Route path="/admin/pronotes" element={
+        <RoleRoute role="admin">
+          <AdminLayout><PronoteManagement /></AdminLayout>
         </RoleRoute>
       } />
     </Routes>

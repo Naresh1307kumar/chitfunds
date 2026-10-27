@@ -30,7 +30,7 @@ class Installment(Base):
     total_amount = Column(Float, nullable=False)
     status = Column(Enum(InstallmentStatus), default=InstallmentStatus.pending)
     paid_date = Column(Date, nullable=True)
-    payment_method = Column(Enum(PaymentMethod), nullable=True)
+    payment_method = Column(String(100), nullable=True)
     transaction_id = Column(String(100), nullable=True)
     receipt_number = Column(String(50), nullable=True, unique=True)
     receipt_path = Column(String(255), nullable=True)

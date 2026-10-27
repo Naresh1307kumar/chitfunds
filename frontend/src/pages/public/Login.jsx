@@ -80,16 +80,16 @@ const Login = () => {
       </div>
 
       {/* Right Panel — Form */}
-      <div className="w-full lg:w-1/2 flex items-center justify-center px-6 py-12 auth-content">
+      <div className="w-full lg:w-1/2 flex items-center justify-center px-4 py-8 sm:px-6 sm:py-12 auth-content">
         <div className="w-full max-w-md">
-          <div className="bg-white rounded-3xl shadow-2xl p-10">
+          <div className="bg-white rounded-3xl shadow-2xl p-6 sm:p-10">
             {/* Header */}
             <div className="flex items-center gap-3 mb-2 lg:hidden">
               <ShieldCheck className="w-7 h-7" style={{ color: '#0F4C81' }} />
               <span className="text-xl font-bold" style={{ color: '#1A2B49' }}>SecureChit</span>
             </div>
-            <h2 className="text-3xl font-bold mb-1" style={{ color: '#1A2B49' }}>Member Login</h2>
-            <p className="text-gray-500 mb-8 text-sm">Sign in to your member account</p>
+            <h2 className="text-2xl sm:text-3xl font-bold mb-1" style={{ color: '#1A2B49' }}>Member Login</h2>
+            <p className="text-gray-500 mb-6 sm:mb-8 text-xs sm:text-sm">Sign in to your member account</p>
 
             {/* Error */}
             {error && (

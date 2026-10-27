@@ -12,3 +12,5 @@ from app.models.report import Report, ReportType, ReportFormat
 from app.models.audit_log import AuditLog
 from app.models.password_reset import PasswordReset
 from app.models.system_setting import SystemSetting
+from app.models.promissory_note import PromissoryNote, PronoteStatus
+

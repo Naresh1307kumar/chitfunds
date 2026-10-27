@@ -14,6 +14,7 @@ const ManagePlans = () => {
   const [formData, setFormData] = useState({
     plan_name: '',
     plan_type: 'silver',
+    chit_type: 'lucky_draw',
     monthly_amount: '',
     total_members: '',
     duration_months: '',
@@ -43,7 +44,7 @@ const ManagePlans = () => {
   const openCreateModal = () => {
     setEditingPlan(null);
     setFormData({
-      plan_name: '', plan_type: 'silver', monthly_amount: '', total_members: '',
+      plan_name: '', plan_type: 'silver', chit_type: 'lucky_draw', monthly_amount: '', total_members: '',
       duration_months: '', commission_rate: 5.0, start_date: ''
     });
     setIsModalOpen(true);
@@ -54,13 +55,13 @@ const ManagePlans = () => {
     setFormData({
       plan_name: plan.plan_name,
       plan_type: plan.plan_type,
+      chit_type: plan.chit_type || 'lucky_draw',
       monthly_amount: plan.monthly_amount,
       total_members: plan.total_members,
       duration_months: plan.duration_months,
       commission_rate: plan.commission_rate,
       start_date: plan.start_date
     });
-    setIsModalOpen(true);
   };
 
   const handleSubmit = async (e) => {
@@ -103,22 +104,22 @@ const ManagePlans = () => {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-6 py-10">
-      <div className="flex justify-between items-center mb-8">
-        <div className="flex items-center gap-4">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-10">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 sm:mb-8 gap-4">
+        <div className="flex items-center gap-3 sm:gap-4">
           <button 
             onClick={() => navigate('/admin/dashboard')}
-            className="w-10 h-10 rounded-full border border-slate-200 hover:border-slate-350 hover:bg-slate-100 text-slate-500 hover:text-slate-800 flex items-center justify-center transition-colors flex-shrink-0 bg-white shadow-sm"
+            className="w-9 h-9 sm:w-10 sm:h-10 rounded-full border border-slate-200 hover:border-slate-350 hover:bg-slate-100 text-slate-500 hover:text-slate-800 flex items-center justify-center transition-colors flex-shrink-0 bg-white shadow-sm"
             title="Go Back"
           >
             <ArrowLeft className="w-4 h-4" />
           </button>
           <div>
-            <h1 className="text-3xl font-bold" style={{ color: '#1A2B49' }}>Manage Chit Plans</h1>
-            <p className="text-gray-500 mt-1">Create and manage chit fund schemes</p>
+            <h1 className="text-2xl sm:text-3xl font-bold" style={{ color: '#1A2B49' }}>Manage Chit Plans</h1>
+            <p className="text-gray-500 text-xs sm:text-sm mt-0.5">Create and manage chit fund schemes</p>
           </div>
         </div>
-        <button onClick={openCreateModal} className="flex items-center gap-2 bg-blue-600 text-white px-5 py-2.5 rounded-xl font-semibold hover:bg-blue-700 transition-colors">
+        <button onClick={openCreateModal} className="w-full sm:w-auto flex items-center justify-center gap-2 bg-blue-600 text-white px-5 py-2.5 rounded-xl font-semibold hover:bg-blue-700 transition-colors shadow-sm">
           <Plus className="w-5 h-5" /> New Plan
         </button>
       </div>
@@ -167,6 +168,10 @@ const ManagePlans = () => {
                   <span className="text-gray-500">Members:</span>
                   <span className="font-semibold text-gray-900">{plan.current_members} / {plan.total_members}</span>
                 </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-500">Chit Type:</span>
+                  <span className="font-semibold text-blue-600">{plan.chit_type === 'auction' ? 'Auction' : 'Lucky Draw'}</span>
+                </div>
               </div>
               
               <div className="flex flex-col gap-2">
@@ -195,8 +200,8 @@ const ManagePlans = () => {
 
       {/* Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-3 sm:p-4">
+          <div className="bg-white rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto shadow-2xl">
             <div className="px-6 py-4 border-b flex justify-between items-center">
               <h2 className="text-xl font-bold">{editingPlan ? 'Edit Plan' : 'Create New Plan'}</h2>
               <button onClick={() => setIsModalOpen(false)} className="text-gray-400 hover:text-gray-700">✕</button>
@@ -206,6 +211,13 @@ const ManagePlans = () => {
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-1">Plan Name</label>
                   <input type="text" name="plan_name" value={formData.plan_name} onChange={handleInputChange} required className="w-full px-4 py-2 border rounded-xl" placeholder="e.g., Deepavali 1L Scheme" />
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1">Chit Type</label>
+                  <select name="chit_type" value={formData.chit_type} onChange={handleInputChange} className="w-full px-4 py-2 border rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <option value="lucky_draw">Lucky Draw</option>
+                    <option value="auction">Auction</option>
+                  </select>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>

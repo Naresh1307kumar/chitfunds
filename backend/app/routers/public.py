@@ -26,3 +26,34 @@ def get_public_plans(db: Session = Depends(get_db)):
         ChitPlan.status.in_([PlanStatus.draft, PlanStatus.active])
     ).all()
     return plans
+
+
+@router.get("/winners")
+def get_public_winners(db: Session = Depends(get_db)):
+    """List recent completed monthly draw winners across all schemes."""
+    from app.models.draw import MonthlyDraw, DrawStatus
+    from app.models.plan_member import PlanMember
+
+    draws = db.query(MonthlyDraw).filter(
+        MonthlyDraw.status == DrawStatus.completed
+    ).order_by(MonthlyDraw.created_at.desc()).limit(20).all()
+
+    results = []
+    for d in draws:
+        plan = db.query(ChitPlan).filter(ChitPlan.id == d.plan_id).first()
+        user = db.query(User).filter(User.id == d.winner_id).first()
+        ticket = db.query(PlanMember).filter(PlanMember.id == d.winning_ticket_id).first()
+
+        results.append({
+            "id": d.id,
+            "plan_name": plan.plan_name if plan else "Chit Plan",
+            "month_number": d.month_number,
+            "draw_date": str(d.draw_date),
+            "winner_name": user.name if user else "Member",
+            "ticket_number": ticket.ticket_number if ticket else "N/A",
+            "prize_amount": d.prize_amount,
+            "reason": getattr(ticket, 'reason', 'personal') if ticket else "personal"
+        })
+
+    return results
+

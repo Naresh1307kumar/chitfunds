@@ -26,16 +26,19 @@ def create_chit_plan(
 ):
     # Auto-calculate values
     total_value = data.monthly_amount * data.total_members
+    chit_value = total_value
     net_prize = total_value - (total_value * (data.commission_rate / 100))
     end_date = data.start_date + relativedelta(months=data.duration_months)
     
     plan = ChitPlan(
         plan_name=data.plan_name,
         plan_type=data.plan_type,
+        chit_type=data.chit_type,
         monthly_amount=data.monthly_amount,
         total_members=data.total_members,
         duration_months=data.duration_months,
         total_value=total_value,
+        chit_value=chit_value,
         commission_rate=data.commission_rate,
         net_prize_amount=net_prize,
         start_date=data.start_date,
@@ -55,6 +58,18 @@ def get_all_plans(
 ):
     plans = db.query(ChitPlan).filter(ChitPlan.is_deleted == False).all()
     return plans
+
+
+@router.get("/{plan_id}", response_model=ChitPlanResponse)
+def get_plan_details(
+    plan_id: int,
+    db: Session = Depends(get_db),
+    admin: User = Depends(check_admin)
+):
+    plan = db.query(ChitPlan).filter(ChitPlan.id == plan_id, ChitPlan.is_deleted == False).first()
+    if not plan:
+        raise HTTPException(status_code=404, detail="Plan not found")
+    return plan
 
 
 @router.put("/{plan_id}", response_model=ChitPlanResponse)
@@ -126,7 +141,9 @@ def get_plan_members(
             "status": "active" if pm.is_active else "pending",
             "joined_at": pm.joined_date,
             "ticket_number": pm.ticket_number,
-            "has_won": pm.has_won
+            "has_won": pm.has_won,
+            "reason": getattr(pm, 'reason', 'personal'),
+            "priority_score": getattr(pm, 'priority_score', 5)
         })
     return results
 
@@ -194,7 +211,7 @@ def start_chit_plan(
         PlanMember.is_active == True
     ).all()
     
-    base_amount = plan.total_value / plan.duration_months
+    base_amount = plan.monthly_amount
     
     for pm in active_members:
         ins = Installment(

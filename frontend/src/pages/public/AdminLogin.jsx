@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { ShieldCheck, Mail, Lock, Eye, EyeOff, ArrowRight, AlertCircle, User } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -126,12 +126,10 @@ const AdminLogin = () => {
                 ? <><div className="w-5 h-5 border-2 border-white/40 border-t-white rounded-full animate-spin" />Signing in...</>
                 : <>Access Dashboard <ArrowRight className="w-4 h-4" /></>}
             </button>
+            <div className="text-center mt-6 text-sm text-slate-500">
+              Member? <Link to="/login" className="text-corpBlue font-bold hover:underline">Login/Register here</Link>
+            </div>
           </form>
-
-          <p className="mt-6 text-center text-xs text-gray-400">
-            Member?{' '}
-            <a href="/login" className="hover:underline" style={{ color: '#0F4C81' }}>Login here</a>
-          </p>
         </div>
       </div>
     </div>

@@ -1,0 +1,253 @@
+<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">
+<head>
+    <meta charset="utf-8">
+    <title>Database Architecture</title>
+    <style>
+        body { font-family: 'Times New Roman', serif; font-size: 12pt; color: black; line-height: 1.5; }
+        h2 { font-size: 16pt; font-weight: bold; margin-bottom: 20px; text-align: center; }
+        h3 { font-size: 14pt; font-weight: bold; margin-top: 30px; margin-bottom: 10px; color: black; }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+        th, td { border: 1px solid black; padding: 8px; text-align: left; vertical-align: top; }
+        th { background-color: #e0e0e0; font-weight: bold; }
+        td:nth-child(1) { font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <h2>DATABASE ARCHITECTURE AND TABLE DESCRIPTIONS</h2>
+
+    <h3>Table 1: users</h3>
+    <table>
+        <tr><th>Field</th><th>Type</th><th>Description</th></tr>
+        <tr><td>id</td><td>INT, PK, Auto-Increment</td><td>Unique user identifier</td></tr>
+        <tr><td>username</td><td>VARCHAR(50), UNIQUE, NOT NULL</td><td>Login username</td></tr>
+        <tr><td>name</td><td>VARCHAR(100), NOT NULL</td><td>Full name</td></tr>
+        <tr><td>email</td><td>VARCHAR(150), NOT NULL</td><td>Email address</td></tr>
+        <tr><td>phone</td><td>VARCHAR(15), NOT NULL</td><td>Contact number</td></tr>
+        <tr><td>password_hash</td><td>VARCHAR(255), NOT NULL</td><td>BCrypt hashed password</td></tr>
+        <tr><td>role</td><td>ENUM, NOT NULL</td><td>member / admin</td></tr>
+        <tr><td>status</td><td>ENUM, NOT NULL</td><td>pending / approved / active / suspended / rejected</td></tr>
+        <tr><td>aadhar_number</td><td>VARCHAR(20), NULL</td><td>Aadhaar card number</td></tr>
+        <tr><td>pan_number</td><td>VARCHAR(20), NULL</td><td>PAN card number</td></tr>
+        <tr><td>date_of_birth</td><td>DATE, NULL</td><td>Date of birth</td></tr>
+        <tr><td>occupation</td><td>VARCHAR(100), NULL</td><td>Member occupation</td></tr>
+        <tr><td>kyc_status</td><td>ENUM, NOT NULL</td><td>not_submitted / pending / verified / rejected</td></tr>
+        <tr><td>failed_login_attempts</td><td>INT, DEFAULT 0</td><td>Brute-force login counter</td></tr>
+        <tr><td>last_login</td><td>TIMESTAMP, NULL</td><td>Last successful login timestamp</td></tr>
+        <tr><td>is_deleted</td><td>BOOLEAN, DEFAULT FALSE</td><td>Soft delete flag</td></tr>
+        <tr><td>created_at</td><td>TIMESTAMP, Server Default</td><td>Registration timestamp</td></tr>
+        <tr><td>updated_at</td><td>TIMESTAMP, Auto-update</td><td>Last modification timestamp</td></tr>
+    </table>
+
+    <h3>Table 2: kyc_documents</h3>
+    <table>
+        <tr><th>Field</th><th>Type</th><th>Description</th></tr>
+        <tr><td>id</td><td>INT, PK</td><td>Unique KYC record ID</td></tr>
+        <tr><td>user_id</td><td>INT, FK -> users.id</td><td>Document owner</td></tr>
+        <tr><td>document_type</td><td>ENUM, NOT NULL</td><td>aadhar_front / aadhar_back / pan_card / address_proof / passport_photo</td></tr>
+        <tr><td>file_path</td><td>VARCHAR(255), NOT NULL</td><td>Uploaded file storage path</td></tr>
+        <tr><td>status</td><td>ENUM, DEFAULT pending</td><td>pending / verified / rejected</td></tr>
+        <tr><td>rejection_reason</td><td>TEXT, NULL</td><td>Reason if rejected by admin</td></tr>
+        <tr><td>verified_by</td><td>INT, FK -> users.id</td><td>Admin who verified the document</td></tr>
+        <tr><td>verified_at</td><td>TIMESTAMP, NULL</td><td>Verification timestamp</td></tr>
+        <tr><td>created_at</td><td>TIMESTAMP, Server Default</td><td>Upload timestamp</td></tr>
+    </table>
+
+    <h3>Table 3: chit_plans</h3>
+    <table>
+        <tr><th>Field</th><th>Type</th><th>Description</th></tr>
+        <tr><td>id</td><td>INT, PK</td><td>Unique plan ID</td></tr>
+        <tr><td>plan_name</td><td>VARCHAR(100), NOT NULL</td><td>Plan name e.g. Gold Plan 2026</td></tr>
+        <tr><td>plan_type</td><td>ENUM, DEFAULT silver</td><td>bronze / silver / gold</td></tr>
+        <tr><td>chit_type</td><td>VARCHAR(20), DEFAULT lucky_draw</td><td>lucky_draw / auction</td></tr>
+        <tr><td>monthly_amount</td><td>FLOAT, NOT NULL</td><td>Monthly installment amount (Rs.)</td></tr>
+        <tr><td>total_members</td><td>INT, NOT NULL</td><td>Maximum members allowed</td></tr>
+        <tr><td>current_members</td><td>INT, DEFAULT 0</td><td>Currently enrolled members</td></tr>
+        <tr><td>duration_months</td><td>INT, NOT NULL</td><td>Total scheme duration in months</td></tr>
+        <tr><td>total_value</td><td>FLOAT, NOT NULL</td><td>Total pool = monthly x members</td></tr>
+        <tr><td>commission_rate</td><td>FLOAT, DEFAULT 5.0</td><td>Foreman commission percentage</td></tr>
+        <tr><td>net_prize_amount</td><td>FLOAT, NOT NULL</td><td>Prize after commission deduction</td></tr>
+        <tr><td>start_date</td><td>DATE, NOT NULL</td><td>Scheme start date</td></tr>
+        <tr><td>end_date</td><td>DATE, NOT NULL</td><td>Auto-calculated scheme end date</td></tr>
+        <tr><td>status</td><td>ENUM, DEFAULT draft</td><td>draft / active / completed / cancelled</td></tr>
+        <tr><td>created_by</td><td>INT, FK -> users.id</td><td>Admin who created the plan</td></tr>
+        <tr><td>created_at</td><td>TIMESTAMP, Server Default</td><td>Plan creation timestamp</td></tr>
+    </table>
+
+    <h3>Table 4: plan_members</h3>
+    <table>
+        <tr><th>Field</th><th>Type</th><th>Description</th></tr>
+        <tr><td>id</td><td>INT, PK</td><td>Unique enrollment ID</td></tr>
+        <tr><td>user_id</td><td>INT, FK -> users.id</td><td>Enrolled member</td></tr>
+        <tr><td>plan_id</td><td>INT, FK -> chit_plans.id</td><td>Plan joined</td></tr>
+        <tr><td>ticket_number</td><td>VARCHAR(50), NULL</td><td>Member ticket e.g. TCK-1024-1</td></tr>
+        <tr><td>joined_date</td><td>DATE, NOT NULL</td><td>Enrollment date</td></tr>
+        <tr><td>has_won</td><td>BOOLEAN, DEFAULT FALSE</td><td>Whether member has won a draw</td></tr>
+        <tr><td>is_active</td><td>BOOLEAN, DEFAULT TRUE</td><td>Enrollment active status</td></tr>
+        <tr><td>reason</td><td>VARCHAR(50), DEFAULT personal</td><td>Purpose of joining</td></tr>
+        <tr><td>priority_score</td><td>INT, DEFAULT 5</td><td>AI Emergency Priority (1=High, 5=Low)</td></tr>
+        <tr><td>created_at</td><td>TIMESTAMP, Server Default</td><td>Enrollment timestamp</td></tr>
+    </table>
+
+    <h3>Table 5: monthly_draws</h3>
+    <table>
+        <tr><th>Field</th><th>Type</th><th>Description</th></tr>
+        <tr><td>id</td><td>INT, PK</td><td>Unique draw ID</td></tr>
+        <tr><td>plan_id</td><td>INT, FK -> chit_plans.id</td><td>Chit plan this draw belongs to</td></tr>
+        <tr><td>month_number</td><td>INT, NOT NULL</td><td>Draw month number (1, 2 ... N)</td></tr>
+        <tr><td>draw_date</td><td>DATE, NOT NULL</td><td>Date of auction draw</td></tr>
+        <tr><td>chit_value</td><td>FLOAT, NOT NULL</td><td>Total pool for this month</td></tr>
+        <tr><td>winning_bid_amount</td><td>FLOAT, NULL</td><td>Winning bid amount (Rs.)</td></tr>
+        <tr><td>discount</td><td>FLOAT, DEFAULT 0.0</td><td>Pool minus winning bid</td></tr>
+        <tr><td>company_commission</td><td>FLOAT, DEFAULT 0.0</td><td>5% of discount</td></tr>
+        <tr><td>net_discount</td><td>FLOAT, DEFAULT 0.0</td><td>Discount after commission</td></tr>
+        <tr><td>dividend_per_member</td><td>FLOAT, DEFAULT 0.0</td><td>Net discount / total members</td></tr>
+        <tr><td>net_payable</td><td>FLOAT, DEFAULT 0.0</td><td>Monthly due minus dividend</td></tr>
+        <tr><td>prize_amount</td><td>FLOAT, NOT NULL</td><td>Amount winner actually receives</td></tr>
+        <tr><td>winning_ticket_id</td><td>INT, FK -> plan_members.id</td><td>Winning member ticket</td></tr>
+        <tr><td>winner_id</td><td>INT, FK -> users.id</td><td>Winning member</td></tr>
+        <tr><td>status</td><td>ENUM, DEFAULT scheduled</td><td>scheduled / completed / cancelled</td></tr>
+        <tr><td>conducted_by</td><td>INT, FK -> users.id</td><td>Admin who conducted the draw</td></tr>
+        <tr><td>created_at</td><td>TIMESTAMP, Server Default</td><td>Draw record timestamp</td></tr>
+    </table>
+
+    <h3>Table 6: installments</h3>
+    <table>
+        <tr><th>Field</th><th>Type</th><th>Description</th></tr>
+        <tr><td>id</td><td>INT, PK</td><td>Unique installment ID</td></tr>
+        <tr><td>plan_member_id</td><td>INT, FK -> plan_members.id</td><td>Member enrollment</td></tr>
+        <tr><td>plan_id</td><td>INT, FK -> chit_plans.id</td><td>Associated chit plan</td></tr>
+        <tr><td>month_number</td><td>INT, NOT NULL</td><td>Month serial number</td></tr>
+        <tr><td>due_date</td><td>DATE, NOT NULL</td><td>Payment due date</td></tr>
+        <tr><td>base_amount</td><td>FLOAT, NOT NULL</td><td>Base installment amount</td></tr>
+        <tr><td>penalty_amount</td><td>FLOAT, DEFAULT 0.0</td><td>Late payment penalty</td></tr>
+        <tr><td>total_amount</td><td>FLOAT, NOT NULL</td><td>Base + Penalty</td></tr>
+        <tr><td>status</td><td>ENUM, DEFAULT pending</td><td>pending / paid / verified / overdue</td></tr>
+        <tr><td>paid_date</td><td>DATE, NULL</td><td>Actual payment date</td></tr>
+        <tr><td>payment_method</td><td>VARCHAR(100), NULL</td><td>cash / bank_transfer / UPI</td></tr>
+        <tr><td>transaction_id</td><td>VARCHAR(100), NULL</td><td>UPI / UTR reference number</td></tr>
+        <tr><td>receipt_number</td><td>VARCHAR(50), UNIQUE, NULL</td><td>Auto-generated REC-2026-XXXX</td></tr>
+        <tr><td>receipt_path</td><td>VARCHAR(255), NULL</td><td>PDF receipt file path</td></tr>
+        <tr><td>verified_by</td><td>INT, FK -> users.id</td><td>Admin who verified payment</td></tr>
+        <tr><td>verified_at</td><td>TIMESTAMP, NULL</td><td>Verification timestamp</td></tr>
+        <tr><td>created_at</td><td>TIMESTAMP, Server Default</td><td>Record creation timestamp</td></tr>
+    </table>
+
+    <h3>Table 7: payments</h3>
+    <table>
+        <tr><th>Field</th><th>Type</th><th>Description</th></tr>
+        <tr><td>id</td><td>INT, PK</td><td>Unique payment ID</td></tr>
+        <tr><td>installment_id</td><td>INT, FK -> installments.id</td><td>Installment being paid</td></tr>
+        <tr><td>user_id</td><td>INT, FK -> users.id</td><td>Member making the payment</td></tr>
+        <tr><td>amount</td><td>FLOAT, NOT NULL</td><td>Payment amount (Rs.)</td></tr>
+        <tr><td>payment_method</td><td>VARCHAR(50), NOT NULL</td><td>UPI / Cash / Bank Transfer</td></tr>
+        <tr><td>transaction_id</td><td>VARCHAR(100), NULL</td><td>12-digit UTR reference</td></tr>
+        <tr><td>status</td><td>ENUM, DEFAULT pending</td><td>pending / success / failed</td></tr>
+        <tr><td>notes</td><td>TEXT, NULL</td><td>Payment remarks</td></tr>
+        <tr><td>created_at</td><td>TIMESTAMP, Server Default</td><td>Payment timestamp</td></tr>
+    </table>
+
+    <h3>Table 8: promissory_notes</h3>
+    <table>
+        <tr><th>Field</th><th>Type</th><th>Description</th></tr>
+        <tr><td>id</td><td>INT, PK</td><td>Unique pronote record ID</td></tr>
+        <tr><td>pronote_id</td><td>VARCHAR(50), UNIQUE, NOT NULL</td><td>Auto-generated PRN-2026-XXXX</td></tr>
+        <tr><td>member_id</td><td>INT, FK -> users.id</td><td>Winner member</td></tr>
+        <tr><td>chit_id</td><td>INT, FK -> chit_plans.id</td><td>Associated chit plan</td></tr>
+        <tr><td>loan_amount</td><td>FLOAT, NOT NULL</td><td>Chit prize amount received</td></tr>
+        <tr><td>issue_date</td><td>DATE, NOT NULL</td><td>Pronote issue date</td></tr>
+        <tr><td>due_date</td><td>DATE, NOT NULL</td><td>Repayment due date</td></tr>
+        <tr><td>interest_rate</td><td>FLOAT, DEFAULT 0.0</td><td>Applicable interest rate (%)</td></tr>
+        <tr><td>repayment_amount</td><td>FLOAT, NOT NULL</td><td>Total repayment obligation</td></tr>
+        <tr><td>purpose</td><td>TEXT, NULL</td><td>Purpose stated by member</td></tr>
+        <tr><td>status</td><td>ENUM, NOT NULL</td><td>pending_signature / active / paid / overdue</td></tr>
+        <tr><td>signature</td><td>TEXT, NULL</td><td>Base64 encoded Canvas digital signature</td></tr>
+        <tr><td>created_at</td><td>TIMESTAMP, Server Default</td><td>Pronote generation timestamp</td></tr>
+    </table>
+
+    <h3>Table 9: guarantors</h3>
+    <table>
+        <tr><th>Field</th><th>Type</th><th>Description</th></tr>
+        <tr><td>id</td><td>INT, PK</td><td>Unique guarantor ID</td></tr>
+        <tr><td>member_id</td><td>INT, FK -> users.id</td><td>Member this guarantor backs</td></tr>
+        <tr><td>name</td><td>VARCHAR(100), NOT NULL</td><td>Guarantor full name</td></tr>
+        <tr><td>phone</td><td>VARCHAR(15), NOT NULL</td><td>Guarantor phone number</td></tr>
+        <tr><td>address</td><td>TEXT, NOT NULL</td><td>Guarantor address</td></tr>
+        <tr><td>relationship_to_member</td><td>VARCHAR(50), NOT NULL</td><td>Father / Spouse / Friend etc.</td></tr>
+        <tr><td>aadhar_number</td><td>VARCHAR(20), NOT NULL</td><td>Guarantor Aadhaar number</td></tr>
+        <tr><td>document_path</td><td>VARCHAR(255), NULL</td><td>Uploaded guarantor document path</td></tr>
+        <tr><td>created_at</td><td>TIMESTAMP, Server Default</td><td>Record creation timestamp</td></tr>
+    </table>
+
+    <h3>Table 10: notifications</h3>
+    <table>
+        <tr><th>Field</th><th>Type</th><th>Description</th></tr>
+        <tr><td>id</td><td>INT, PK</td><td>Unique notification ID</td></tr>
+        <tr><td>user_id</td><td>INT, FK -> users.id</td><td>Recipient user</td></tr>
+        <tr><td>title</td><td>VARCHAR(200), NOT NULL</td><td>Notification heading</td></tr>
+        <tr><td>message</td><td>TEXT, NOT NULL</td><td>Full notification body</td></tr>
+        <tr><td>notification_type</td><td>ENUM, DEFAULT info</td><td>success / warning / alert / info</td></tr>
+        <tr><td>is_read</td><td>BOOLEAN, DEFAULT FALSE</td><td>Read / Unread status</td></tr>
+        <tr><td>created_at</td><td>TIMESTAMP, Server Default</td><td>Dispatch timestamp</td></tr>
+    </table>
+
+    <h3>Table 11: certificates</h3>
+    <table>
+        <tr><th>Field</th><th>Type</th><th>Description</th></tr>
+        <tr><td>id</td><td>INT, PK</td><td>Unique certificate ID</td></tr>
+        <tr><td>user_id</td><td>INT, FK -> users.id</td><td>Certificate holder</td></tr>
+        <tr><td>plan_id</td><td>INT, FK -> chit_plans.id</td><td>Completed scheme</td></tr>
+        <tr><td>certificate_number</td><td>VARCHAR(50), UNIQUE</td><td>Certificate serial number</td></tr>
+        <tr><td>file_path</td><td>VARCHAR(255), NULL</td><td>PDF certificate file path</td></tr>
+        <tr><td>issued_by</td><td>INT, FK -> users.id</td><td>Admin who issued the certificate</td></tr>
+        <tr><td>issued_at</td><td>TIMESTAMP, Server Default</td><td>Issue timestamp</td></tr>
+    </table>
+
+    <h3>Table 12: reports</h3>
+    <table>
+        <tr><th>Field</th><th>Type</th><th>Description</th></tr>
+        <tr><td>id</td><td>INT, PK</td><td>Unique report ID</td></tr>
+        <tr><td>report_type</td><td>ENUM, NOT NULL</td><td>members / kyc_status / installments / overdue / auctions / revenue / audit_log</td></tr>
+        <tr><td>report_format</td><td>ENUM, NOT NULL</td><td>pdf / csv / excel</td></tr>
+        <tr><td>file_path</td><td>VARCHAR(255), NULL</td><td>Generated report file path</td></tr>
+        <tr><td>generated_by</td><td>INT, FK -> users.id</td><td>Admin who generated the report</td></tr>
+        <tr><td>generated_at</td><td>TIMESTAMP, Server Default</td><td>Report generation timestamp</td></tr>
+    </table>
+
+    <h3>Table 13: audit_logs</h3>
+    <table>
+        <tr><th>Field</th><th>Type</th><th>Description</th></tr>
+        <tr><td>id</td><td>INT, PK</td><td>Unique log entry ID</td></tr>
+        <tr><td>user_id</td><td>INT, FK -> users.id</td><td>User who triggered the action</td></tr>
+        <tr><td>action</td><td>VARCHAR(100), NOT NULL</td><td>Action type e.g. LOGIN / PAYMENT_VERIFIED</td></tr>
+        <tr><td>entity_type</td><td>VARCHAR(50), NULL</td><td>Affected entity e.g. installment</td></tr>
+        <tr><td>entity_id</td><td>INT, NULL</td><td>ID of the affected record</td></tr>
+        <tr><td>details</td><td>TEXT, NULL</td><td>Action description and metadata</td></tr>
+        <tr><td>ip_address</td><td>VARCHAR(45), NULL</td><td>User IP address</td></tr>
+        <tr><td>created_at</td><td>TIMESTAMP, Server Default</td><td>Log entry timestamp</td></tr>
+    </table>
+
+    <h3>Table 14: system_settings</h3>
+    <table>
+        <tr><th>Field</th><th>Type</th><th>Description</th></tr>
+        <tr><td>id</td><td>INT, PK</td><td>Setting record ID</td></tr>
+        <tr><td>key</td><td>VARCHAR(100), UNIQUE, NOT NULL</td><td>Setting key e.g. commission_rate</td></tr>
+        <tr><td>value</td><td>TEXT, NOT NULL</td><td>Setting value e.g. 5.0</td></tr>
+        <tr><td>description</td><td>TEXT, NULL</td><td>Human-readable description</td></tr>
+        <tr><td>updated_at</td><td>TIMESTAMP, Auto-update</td><td>Last update timestamp</td></tr>
+        <tr><td>created_at</td><td>TIMESTAMP, Server Default</td><td>Creation timestamp</td></tr>
+    </table>
+
+    <h3>Table 15: password_resets</h3>
+    <table>
+        <tr><th>Field</th><th>Type</th><th>Description</th></tr>
+        <tr><td>id</td><td>INT, PK</td><td>Unique token record ID</td></tr>
+        <tr><td>user_id</td><td>INT, FK -> users.id</td><td>Account requesting reset</td></tr>
+        <tr><td>reset_token</td><td>VARCHAR(255), UNIQUE, NOT NULL</td><td>Hashed one-time reset token</td></tr>
+        <tr><td>expires_at</td><td>TIMESTAMP, NOT NULL</td><td>Token expiry time</td></tr>
+        <tr><td>is_used</td><td>BOOLEAN, DEFAULT FALSE</td><td>Whether token has been consumed</td></tr>
+        <tr><td>created_at</td><td>TIMESTAMP, Server Default</td><td>Token generation timestamp</td></tr>
+    </table>
+
+</body>
+</html>
