@@ -8,8 +8,8 @@ import os
 # Import all models so SQLAlchemy creates tables
 from app.models import (
     User, KYCDocument, Guarantor, ChitPlan, PlanMember,
-    Installment, Payment, Notification, Certificate, Report, AuditLog,
-    PasswordReset, SystemSetting
+    Installment, Payment, MonthlyDraw, Notification, Certificate, Report, AuditLog,
+    PasswordReset, SystemSetting, PromissoryNote
 )
 
 # Import routers
@@ -30,8 +30,12 @@ from app.routers.member import notifications as member_notifications
 from app.routers.member import pronotes as member_pronotes
 from app.routers import public
 
-# Create all tables
-Base.metadata.create_all(bind=engine)
+# Create all tables safely
+try:
+    Base.metadata.create_all(bind=engine)
+    print("Database tables verified/created successfully.")
+except Exception as e:
+    print(f"Warning: Database connection / table creation error on startup: {e}")
 
 app = FastAPI(
     title=APP_NAME,
